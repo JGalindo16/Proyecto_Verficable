@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from app.routes.course_routes import course_bp
 from app.http_errors import HTTP_NOT_FOUND
 
@@ -9,6 +9,6 @@ def create_app():
 
     @app.errorhandler(HTTP_NOT_FOUND)
     def not_found(e):
-        return "Página no encontrada", 404
+        return render_template("global/404.html"), HTTP_NOT_FOUND
 
     return app
