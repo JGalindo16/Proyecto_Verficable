@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Profesores</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h2>Listado de Profesores</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prof in data %}
+                <tr>
+                    <td>{{ prof.id }}</td>
+                    <td>{{ prof.name }}</td>
+                    <td>{{ prof.email }}</td>
+                    <td>
+                        <a href="/professors/{{ prof.id }}" class="btn btn-sm btn-primary">Ver</a>
+                        <a href="/professors/{{ prof.id }}/edit" class="btn btn-sm btn-warning">Editar</a>
+                        <form action="/professors/{{ prof.id }}/delete" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este profesor?')">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="/professors/create" class="btn btn-success">Añadir Profesor</a>
+    </div>
+</body>
+</html>
