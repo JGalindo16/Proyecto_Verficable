@@ -96,3 +96,13 @@ class CourseInstanceService:
     def get_all_students(self):
         self.cursor.execute("SELECT student_id AS id, name FROM students")
         return self.cursor.fetchall()
+    
+    def delete_section(self, section_id: int):
+        try:
+            sql = "DELETE FROM sections WHERE section_id = %s"
+            self.cursor.execute(sql, (section_id,))
+            self.db.commit()
+            return True
+        except Exception as e:
+            print("Error al eliminar sección:", e)
+            return False

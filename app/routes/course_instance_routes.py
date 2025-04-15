@@ -80,3 +80,8 @@ def add_section(course_id, instance_id):
 
     # Redirigir de vuelta a la página de la instancia
     return redirect(f'/courses/{course_id}/instances/{instance_id}')
+
+@course_instance_bp.route('/courses/<int:course_id>/instances/<int:instance_id>/sections/<int:section_id>/delete', methods=['POST'])
+def delete_section(course_id, instance_id, section_id):
+    instance_service.delete_section(section_id)
+    return redirect(f'/courses/{course_id}/instances/{instance_id}')

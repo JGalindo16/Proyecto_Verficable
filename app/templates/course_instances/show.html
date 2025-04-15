@@ -29,11 +29,16 @@
                     <td>{{ section.name }}</td>
                     <td>{{ section.professor }}</td>
                     <td>{{ section.student_count }}</td>
+                    <td>
+                        <form action="/courses/{{ course.id }}/instances/{{ instance.id }}/sections/{{ section.id }}/delete" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar esta sección?')">Eliminar</button>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="3" class="text-center">No hay secciones disponibles</td>
+                    <td colspan="4" class="text-center">No hay secciones disponibles</td>
                 </tr>
             {% endif %}
         </tbody>
