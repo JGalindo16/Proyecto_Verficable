@@ -45,12 +45,18 @@ def edit_instance(course_id, instance_id):
 def view_instance(course_id, instance_id):
     instance = instance_service.get_instance_by_id(instance_id)
     course = course_service.get_course_by_id(course_id)
-    sections = instance_service.get_sections_by_instance(instance_id)
     professors = instance_service.get_all_professors()
     students = instance_service.get_all_students()
-
+    
     if not instance or not course:
         return "Instancia o curso no encontrado", 404
+    
+    # Obtener secciones con datos adicionales para los modales de edición
+    sections = instance_service.get_sections_by_instance(instance_id)
+    
+    # Para cada sección, obtener los IDs de estudiantes ya inscritos
+    for section in sections:
+        section['enrolled_student_ids'] = instance_service.get_enrolled_student_ids(section['id'])
 
     return render_template(
         'course_instances/show.html',
@@ -85,3 +91,46 @@ def add_section(course_id, instance_id):
 def delete_section(course_id, instance_id, section_id):
     instance_service.delete_section(section_id)
     return redirect(f'/courses/{course_id}/instances/{instance_id}')
+
+@course_instance_bp.route('/courses/<int:course_id>/instances/<int:instance_id>/sections/<int:section_id>')
+def view_section(course_id, instance_id, section_id):
+    course = course_service.get_course_by_id(course_id)
+    instance = instance_service.get_instance_by_id(instance_id)
+    section = instance_service.get_section_by_id(section_id)
+    students = instance_service.get_students_in_section(section_id)
+    professors = instance_service.get_all_professors()
+    all_students = instance_service.get_all_students()
+    enrolled_student_ids = instance_service.get_enrolled_student_ids(section_id)
+    
+    if not course or not instance or not section:
+        return "Recurso no encontrado", 404
+        
+    return render_template(
+        'sections/show.html',
+        course=course,
+        instance=instance,
+        section=section,
+        students=students,
+        professors=professors,
+        all_students=all_students,
+        enrolled_student_ids=enrolled_student_ids
+    )
+
+@course_instance_bp.route('/courses/<int:course_id>/instances/<int:instance_id>/sections/<int:section_id>/edit', methods=['POST'])
+def update_section(course_id, instance_id, section_id):
+    section_number = request.form.get('section_number')
+    professor_id = request.form.get('professor_id')
+    student_ids = request.form.getlist('student_ids')
+    
+    if not section_number or not professor_id:
+        return redirect(f'/courses/{course_id}/instances/{instance_id}/sections/{section_id}')
+    
+    # Actualizar la información de la sección
+    success = instance_service.update_section(section_id, section_number, professor_id)
+    
+    # Actualizar los estudiantes inscritos
+    if success:
+        instance_service.update_section_students(section_id, student_ids)
+    
+    # Redirigir de vuelta a la página de detalle de sección
+    return redirect(f'/courses/{course_id}/instances/{instance_id}/sections/{section_id}')

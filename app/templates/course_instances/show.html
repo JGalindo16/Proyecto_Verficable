@@ -20,6 +20,7 @@
                 <th>Nombre de la Sección</th>
                 <th>Profesor Asignado</th>
                 <th>Cantidad de Alumnos Inscritos</th>
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -30,11 +31,86 @@
                     <td>{{ section.professor }}</td>
                     <td>{{ section.student_count }}</td>
                     <td>
+                        <a href="/courses/{{ course.id }}/instances/{{ instance.id }}/sections/{{ section.id }}" class="btn btn-sm btn-primary">Ver</a>
+                        <button type="button" class="btn btn-sm btn-warning" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#editSectionModal{{ section.id }}">
+                            Editar
+                        </button>
                         <form action="/courses/{{ course.id }}/instances/{{ instance.id }}/sections/{{ section.id }}/delete" method="POST" style="display:inline;">
                             <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar esta sección?')">Eliminar</button>
                         </form>
                     </td>
                 </tr>
+
+                <!-- Modal para editar la sección -->
+                <div class="modal fade" id="editSectionModal{{ section.id }}" tabindex="-1" aria-labelledby="editSectionModalLabel{{ section.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <form action="/courses/{{ course.id }}/instances/{{ instance.id }}/sections/{{ section.id }}/edit" method="POST">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="editSectionModalLabel{{ section.id }}">Editar Sección {{ section.name }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label for="section_number{{ section.id }}">Número de Sección</label>
+                                                <input type="number" class="form-control" id="section_number{{ section.id }}" name="section_number" value="{{ section.number }}" required min="1" max="99">
+                                            </div>
+                                            
+                                            <div class="form-group mb-3">
+                                                <label for="professor_id{{ section.id }}">Profesor</label>
+                                                <select class="form-select" id="professor_id{{ section.id }}" name="professor_id" required>
+                                                    <option value="">-- Seleccione un Profesor --</option>
+                                                    {% for prof in professors %}
+                                                    <option value="{{ prof.id }}" {% if prof.id == section.professor_id %}selected{% endif %}>{{ prof.name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Estudiantes Inscritos</label>
+                                                <input type="text" class="form-control mb-2 student-search" placeholder="Buscar estudiante...">
+                                                
+                                                <div class="card">
+                                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                                        <span>Estudiantes</span>
+                                                        <button type="button" class="btn btn-sm btn-outline-primary select-all-students">Seleccionar Todos</button>
+                                                    </div>
+                                                    <div class="card-body" style="max-height: 200px; overflow-y: auto;">
+                                                        {% for student in students %}
+                                                        <div class="form-check student-item">
+                                                            <input class="form-check-input student-checkbox" type="checkbox" 
+                                                                id="student{{ section.id }}_{{ student.id }}" 
+                                                                name="student_ids" 
+                                                                value="{{ student.id }}"
+                                                                {% if student.id in section.enrolled_student_ids %}checked{% endif %}>
+                                                            <label class="form-check-label" for="student{{ section.id }}_{{ student.id }}">
+                                                                {{ student.name }} ({{ student.email }})
+                                                            </label>
+                                                        </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                    <div class="card-footer">
+                                                        <small class="text-muted">Estudiantes seleccionados: <span class="selected-count">0</span></small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
                 {% endfor %}
             {% else %}
                 <tr>
@@ -165,6 +241,67 @@
             studentSearch.value = '';
             studentItems.forEach(item => {
                 item.style.display = 'block';
+            });
+        });
+
+        // Código para los modales de edición de secciones
+        document.querySelectorAll('.student-search').forEach(search => {
+            search.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const modal = this.closest('.modal');
+                
+                modal.querySelectorAll('.student-item').forEach(item => {
+                    const studentName = item.textContent.trim().toLowerCase();
+                    if (studentName.includes(searchTerm)) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        document.querySelectorAll('.select-all-students').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                const checkboxes = modal.querySelectorAll('.student-checkbox');
+                const allSelected = modal.querySelectorAll('.student-checkbox:checked').length === checkboxes.length;
+                
+                checkboxes.forEach(checkbox => {
+                    const item = checkbox.closest('.student-item');
+                    if (item.style.display !== 'none') {
+                        checkbox.checked = !allSelected;
+                    }
+                });
+                
+                updateSelectedCount(modal);
+                this.textContent = allSelected ? 'Seleccionar Todos' : 'Deseleccionar Todos';
+            });
+        });
+        
+        function updateSelectedCount(modal) {
+            const selectedCount = modal.querySelectorAll('.student-checkbox:checked').length;
+            modal.querySelector('.selected-count').textContent = selectedCount;
+        }
+        
+        document.querySelectorAll('.modal').forEach(modal => {
+            const checkboxes = modal.querySelectorAll('.student-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => updateSelectedCount(modal));
+            });
+            
+            // Inicializar contadores
+            updateSelectedCount(modal);
+            
+            // Reiniciar búsqueda al abrir modal
+            modal.addEventListener('shown.bs.modal', function() {
+                const search = this.querySelector('.student-search');
+                if (search) {
+                    search.value = '';
+                    this.querySelectorAll('.student-item').forEach(item => {
+                        item.style.display = 'block';
+                    });
+                }
             });
         });
     });

@@ -56,6 +56,8 @@ class CourseInstanceService:
         self.cursor.execute("""
             SELECT 
                 s.section_id AS id,
+                s.number,
+                s.professor_id,
                 CONCAT('Sección ', s.number) AS name,
                 p.name AS professor,
                 COUNT(e.enrollment_id) AS student_count
@@ -106,3 +108,64 @@ class CourseInstanceService:
         except Exception as e:
             print("Error al eliminar sección:", e)
             return False
+
+    def get_section_by_id(self, section_id: int):
+        self.cursor.execute("""
+            SELECT 
+                s.section_id AS id,
+                s.number,
+                s.professor_id,
+                p.name AS professor_name,
+                CONCAT('Sección ', s.number) AS name
+            FROM sections s
+            LEFT JOIN professors p ON s.professor_id = p.professor_id
+            WHERE s.section_id = %s
+        """, (section_id,))
+        return self.cursor.fetchone()
+    
+    def get_students_in_section(self, section_id: int):
+        self.cursor.execute("""
+            SELECT 
+                s.student_id AS id,
+                s.name,
+                s.email
+            FROM enrollments e
+            JOIN students s ON e.student_id = s.student_id
+            WHERE e.section_id = %s
+            ORDER BY s.name
+        """, (section_id,))
+        return self.cursor.fetchall()
+        
+    def update_section(self, section_id: int, section_number: int, professor_id: int):
+        try:
+            sql = "UPDATE sections SET number = %s, professor_id = %s WHERE section_id = %s"
+            self.cursor.execute(sql, (section_number, professor_id, section_id))
+            self.db.commit()
+            return True
+        except Exception as e:
+            print("Error al actualizar sección:", e)
+            return False
+            
+    def update_section_students(self, section_id: int, student_ids: list):
+        try:
+            # Primero eliminamos todas las inscripciones actuales
+            self.cursor.execute("DELETE FROM enrollments WHERE section_id = %s", (section_id,))
+            
+            # Luego agregamos las nuevas inscripciones
+            if student_ids:
+                sql = "INSERT INTO enrollments (section_id, student_id) VALUES (%s, %s)"
+                values = [(section_id, student_id) for student_id in student_ids]
+                self.cursor.executemany(sql, values)
+                
+            self.db.commit()
+            return True
+        except Exception as e:
+            print("Error al actualizar estudiantes de la sección:", e)
+            return False
+            
+    def get_enrolled_student_ids(self, section_id: int):
+        self.cursor.execute("""
+            SELECT student_id FROM enrollments WHERE section_id = %s
+        """, (section_id,))
+        result = self.cursor.fetchall()
+        return [row['student_id'] for row in result]
