@@ -67,4 +67,32 @@ class CourseInstanceService:
         """, (instance_id,))
         return self.cursor.fetchall()
     
+    def add_section(self, instance_id: int, section_name: str, professor_id: int):
+        try:
+            # Convertir a número entero, ya que ahora es un campo numérico
+            section_number = int(section_name)
+            
+            sql = "INSERT INTO sections (instance_id, number, professor_id) VALUES (%s, %s, %s)"
+            self.cursor.execute(sql, (instance_id, section_number, professor_id))
+            self.db.commit()
+            return self.cursor.lastrowid
+        except Exception as e:
+            print("Error al agregar sección:", e)
+            return None
+        
+    def add_students_to_section(self, section_id: int, student_ids: list):
+        try:
+            sql = "INSERT INTO enrollments (section_id, student_id) VALUES (%s, %s)"
+            values = [(section_id, student_id) for student_id in student_ids]
+            self.cursor.executemany(sql, values)
+            self.db.commit()
+        except Exception as e:
+            print("Error al agregar estudiantes a la sección:", e)
     
+    def get_all_professors(self):
+        self.cursor.execute("SELECT professor_id AS id, name FROM professors")
+        return self.cursor.fetchall()
+
+    def get_all_students(self):
+        self.cursor.execute("SELECT student_id AS id, name FROM students")
+        return self.cursor.fetchall()

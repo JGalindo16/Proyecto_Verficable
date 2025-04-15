@@ -46,7 +46,37 @@ def view_instance(course_id, instance_id):
     instance = instance_service.get_instance_by_id(instance_id)
     course = course_service.get_course_by_id(course_id)
     sections = instance_service.get_sections_by_instance(instance_id)
+    professors = instance_service.get_all_professors()
+    students = instance_service.get_all_students()
+
     if not instance or not course:
         return "Instancia o curso no encontrado", 404
-    return render_template('course_instances/show.html', instance=instance, course=course, sections=sections)
 
+    return render_template(
+        'course_instances/show.html',
+        instance=instance,
+        course=course,
+        sections=sections,
+        professors=professors,
+        students=students
+    )
+
+@course_instance_bp.route('/courses/<int:course_id>/instances/<int:instance_id>/sections', methods=['POST'])
+def add_section(course_id, instance_id):
+    section_name = request.form.get("section_name")
+    professor_id = request.form.get("professor_id")
+    student_ids = request.form.getlist("student_ids")  # Lista de IDs de estudiantes seleccionados
+
+    if not section_name or not professor_id:
+        # Redirigir con un mensaje de error si faltan datos
+        return redirect(f'/courses/{course_id}/instances/{instance_id}', code=400)
+
+    # Crear la sección
+    section_id = instance_service.add_section(instance_id, section_name, professor_id)
+
+    # Asignar estudiantes a la sección
+    if student_ids:
+        instance_service.add_students_to_section(section_id, student_ids)
+
+    # Redirigir de vuelta a la página de la instancia
+    return redirect(f'/courses/{course_id}/instances/{instance_id}')
