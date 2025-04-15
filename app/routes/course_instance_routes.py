@@ -29,3 +29,24 @@ def create_instance(course_id):
 def delete_instance(course_id, instance_id):
     instance_service.delete_instance(instance_id)
     return redirect(f'/courses/{course_id}')
+
+@course_instance_bp.route('/courses/<int:course_id>/instances/<int:instance_id>/edit', methods=['POST'])
+def edit_instance(course_id, instance_id):
+    year = request.form.get("year")
+    semester = request.form.get("semester")
+    if not year or not semester:
+        course = course_service.get_course_by_id(course_id)
+        return render_template('courses/show.html', data=course, error="Todos los campos son obligatorios")
+    
+    instance_service.update_instance(instance_id, year, semester)
+    return redirect(f'/courses/{course_id}')
+
+@course_instance_bp.route('/courses/<int:course_id>/instances/<int:instance_id>')
+def view_instance(course_id, instance_id):
+    instance = instance_service.get_instance_by_id(instance_id)
+    course = course_service.get_course_by_id(course_id)
+    sections = instance_service.get_sections_by_instance(instance_id)
+    if not instance or not course:
+        return "Instancia o curso no encontrado", 404
+    return render_template('course_instances/show.html', instance=instance, course=course, sections=sections)
+

@@ -31,20 +31,55 @@
                 </tr>
             </thead>
             <tbody>
-                {% for inst in data.instances %}
-                <tr>
-                    <td>{{ inst.year }}</td>
-                    <td>{{ inst.semester }}</td>
-                    <td>
-                        <form action="/courses/{{ data.id }}/instances/{{ inst.id }}/delete" method="POST" style="display:inline;">
-                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar esta instancia?')">Eliminar</button>
-                        </form>
-                    </td>
-                </tr>
-                {% else %}
-                <tr><td colspan="3">No hay instancias registradas.</td></tr>
-                {% endfor %}
-            </tbody>
+              {% for inst in data.instances %}
+              <tr>
+                  <td>{{ inst.year }}</td>
+                  <td>{{ inst.semester }}</td>
+                  <td>
+                      <!-- Botón para abrir la página de la instancia -->
+                      <a href="/courses/{{ data.id }}/instances/{{ inst.id }}" class="btn btn-sm btn-primary">Ver</a>
+                      <!-- Botón para abrir el modal de edición -->
+                      <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editInstanceModal{{ inst.id }}">
+                          Editar
+                      </button>
+                      <form action="/courses/{{ data.id }}/instances/{{ inst.id }}/delete" method="POST" style="display:inline;">
+                          <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar esta instancia?')">Eliminar</button>
+                      </form>
+                  </td>
+              </tr>
+          
+              <!-- Modal para editar la instancia -->
+              <div class="modal fade" id="editInstanceModal{{ inst.id }}" tabindex="-1" aria-labelledby="editInstanceModalLabel{{ inst.id }}" aria-hidden="true">
+                  <div class="modal-dialog">
+                      <div class="modal-content">
+                          <form action="/courses/{{ data.id }}/instances/{{ inst.id }}/edit" method="POST">
+                              <div class="modal-header">
+                                  <h5 class="modal-title" id="editInstanceModalLabel{{ inst.id }}">Editar instancia de curso</h5>
+                                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                              </div>
+                              <div class="modal-body">
+                                  <div class="form-group">
+                                      <label for="year{{ inst.id }}">Año</label>
+                                      <input type="number" class="form-control" name="year" id="year{{ inst.id }}" value="{{ inst.year }}" required>
+                                  </div>
+                                  <div class="form-group mt-3">
+                                      <label for="semester{{ inst.id }}">Semestre</label>
+                                      <select class="form-control" name="semester" id="semester{{ inst.id }}" required>
+                                          <option value="1" {% if inst.semester == '1' %}selected{% endif %}>1</option>
+                                          <option value="2" {% if inst.semester == '2' %}selected{% endif %}>2</option>
+                                      </select>
+                                  </div>
+                              </div>
+                              <div class="modal-footer">
+                                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                  <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                              </div>
+                          </form>
+                      </div>
+                  </div>
+              </div>
+              {% endfor %}
+          </tbody>
         </table>
 
         <!-- Botón para abrir el modal -->

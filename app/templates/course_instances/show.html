@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Instancia del Curso</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-5">
+    <h2>Instancia del Curso</h2>
+    <p><strong>Curso:</strong> {{ course.name }} ({{ course.code }})</p>
+    <p><strong>Año:</strong> {{ instance.year }}</p>
+    <p><strong>Semestre:</strong> {{ instance.semester }}</p>
+
+    <hr class="my-4">
+
+    <h4>Secciones</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre de la Sección</th>
+                <th>Profesor Asignado</th>
+                <th>Cantidad de Alumnos Inscritos</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if sections %}
+                {% for section in sections %}
+                <tr>
+                    <td>{{ section.name }}</td>
+                    <td>{{ section.professor }}</td>
+                    <td>{{ section.student_count }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="3" class="text-center">No hay secciones disponibles</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <button class="btn btn-success mt-3">Agregar Secciones</button>
+
+    <a href="/courses/{{ course.id }}" class="btn btn-primary mt-3">Volver al curso</a>
+</body>
+</html>
