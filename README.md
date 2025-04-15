@@ -1,60 +1,103 @@
-# Prueba de concepto #
+# 🚀 Configuración del Proyecto - POC Verificable
+---
 
-## Explicación ##
-Esta aplicación de prueba permite a los usuarios subir registros y observarlos, ya sea uno de ellos o todos. Esta prueba de concepto les permitirá entender cómo empezar a realizar el proyecto del curso de Software Verificable.
+## ⚙️ Cómo configurar la base de datos
 
-En esta prueba de concepto, un registro contiene dos parámetros:
-* Texto: Es cualquier clase de texto
-* Numero: un número cualquiera
+> 📌 **Requisito:** Asegúrate de tener Docker corriendo antes de continuar. Los pasos para esto están más abajo.
 
-Esta versión contiene 3 vistas principales:
-* Ver todos los registros (```/``` o ```/register```): Esta vista permite ver todos los registros
-* Ver un registro (```/register/<id>```): Esta vista permite ver el registro con id ```<id>```
-* Crear un registro (```/create```): Esta vista permite crear un registro, en esta prueba de concepto se pueden crear registros de dos formas distinas:
-    * Formulario: Se puede agregar un registro mediante un formulario
-    * Archivo JSON: Se pueden agregar uno o varios registros mediante un archivo JSON como el adjunto en este repositorio (```test.json```)
+### 1. Cargar las tablas
 
-## Cómo ejecutar el aplicativo ##
-Para ejecutar el aplicativo se deben seguir los siguientes pasos:
-* Ejecutar el docker compose que se encuentra en la carpeta ```db``` con el comando ```docker compose up```
-    * Debe tener instalado ```docker``` en su máquina para poder ejecutar ese comando
-* Se debe ingresar a la base de datos con algún administrador de base de datos relacional de preferencia (Databind, DBeaver, etc) y crear la tabla de registros que se encuentra en la carpeta ```db``` en el archivo ```db.sql```
-* Instalar las bibliotecas que se encuentran en el archivo ```requirements.txt``` utilizando el comando ```pip install -r requirements.txt```
-    * NOTA: Si el comando anterior no funciona puedes utilizarlo indicando que se ejecute desde python con ```python -m pip install -r requirements.txt```
-* Crear un archivo ```.env``` que contenga lo siguiente:
-    ```
-    MYSQL_HOST='localhost'
-    MYSQL_PORT=3306
-    MYSQL_DATABASE='test_poc'
-    MYSQL_USER='user'
-    MYSQL_PASSWORD='pass'
-    ```
-* Ejecutar la aplicación desde ```main.py``` con el comando ```python .\main.py```
-    * Por defecto la aplicación se ejecuta en ```localhost``` en el puerto ```5000```
+Desde la raíz del proyecto, ejecutá el siguiente comando para importar el esquema SQL:
 
-## Cómo ejecutar las pruebas ##
-En esta prueba de concepto existe un archivo de pruebas unitarias (```test.py```) que permite evaluar la funcionalidad de cada uno de los aplicativos, se puede ejecutar el test utilizando el siguiente comando:
+```bash
+mysql -h 127.0.0.1 -P 3306 -u user -p test_poc < db/db.sql
+```
 
-```pytest test.py```
+La contraseña por defecto es: **`pass`**
 
-Si no funciona el comando anterior, se puede ejecutar desde python con el siguiente comando:
+---
 
-```python -m pytest test.py```
+### 2. Verificar que las tablas se hayan creado
 
-Con las bibliotecas ```coverage``` y ```pytest-cov``` se pueden generar reportes de cobertura de código después de ejecutar los tests, para ello se debe ejecutar el siguiente comando:
+Ingresá al cliente de MySQL:
 
-```pytest --cov=. test.py --cov-report html```
+```bash
+mysql -h 127.0.0.1 -P 3306 -u user -p
+```
 
-Si no funciona el comando anterior, se puede ejecutar desde python con el siguiente comando:
+Una vez dentro:
 
-```python -m pytest --cov=. test.py --cov-report html```
+```sql
+USE test_poc;
+SHOW TABLES;
+```
 
-Ya con el reporte generado, se debe haber creado una carpeta llamada ```htmlcov```, dentro de ésta se muestrá un archivo ```index.html```, al abrirlo se mostrará la cobertura de codigo a través de los tests.
+Si ves las tablas listadas, ¡todo está correcto!
+
+---
+
+## 🐳 Cómo levantar el entorno de desarrollo
+
+> ⚠️ **Nota importante:** Para trabajar correctamente, vas a necesitar **dos terminales abiertas**.
+
+---
+
+### 🖥 Terminal 1 — Levantar MySQL con Docker
+
+Ir a la carpeta `db` y ejecutar:
+
+```bash
+docker-compose up
+```
+
+🛑 Esta terminal debe quedar abierta y corriendo en segundo plano mientras trabajás.
+
+---
+
+### 🖥 Terminal 2 — Correr la app Flask
+
+#### 1. Crear el entorno virtual (solo la primera vez):
+
+```bash
+python -m venv venv
+```
+
+#### 2. Activar el entorno virtual:
+
+```bash
+. venv/bin/activate
+```
+
+*(En Windows: `venv\Scripts\activate`)*
+
+#### 3. Instalar las dependencias:
+
+```bash
+pip install -r requirements.txt
+```
+
+> Repetir este comando cada vez que se actualice el archivo `requirements.txt`.
+
+#### 4. Ejecutar la aplicación:
+
+```bash
+python main.py
+```
 
 
-## Extensiones para verificar código limpio
-En esta sección se propondran extensiones/plugins que pueden instalar para verificar que cumplen con parte de las buenas prácticas del codigo limpio (clean code)
 
-* SonarLint: Extensión para encontrar y corregir problemas de codificación en tiempo real, marcando los problemas a medida que codifica, similar a un corrector ortográfico. Se puede instalar como un plugin en Intellij o como extensión en Visual Studio Code.
-* Code Spell Checker: Extensión que ayuda a detectar nombres de variables que puedan tener algun problema de nombre ya sea por falta ortográfica o por incoherencia. Se puede instalar en Visual Studio Code en muchos idiomas incluyendo Español. En Intellij viene por defecto.
-  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
