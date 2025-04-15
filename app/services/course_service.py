@@ -18,12 +18,19 @@ class CourseService:
             return HTTP_BAD_REQUEST
 
     def get_all_courses(self):
-        self.cursor.execute("SELECT * FROM courses")
+        self.cursor.execute("SELECT course_id AS id, name, code FROM courses")
         return self.cursor.fetchall()
 
     def get_course_by_id(self, id: int):
-        self.cursor.execute("SELECT * FROM courses WHERE id = %s", (id,))
-        return self.cursor.fetchone()
+        self.cursor.execute("SELECT course_id AS id, name, code FROM courses WHERE course_id = %s", (id,))
+        course = self.cursor.fetchone()
+
+        if course:
+            from app.services.course_instance_service import CourseInstanceService
+            instance_service = CourseInstanceService()
+            course["instances"] = instance_service.get_instances_by_course(id)
+        
+        return course
 
     def update_course(self, id: int, name: str, code: str):
         try:
