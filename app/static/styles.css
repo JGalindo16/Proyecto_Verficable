@@ -1,14 +1,42 @@
 :root {
     --title-color: #33176c;
+    --navbar-bg-start: #007bff;
+    --navbar-bg-end: #0056b3;
 }
 
-.base{
+.base {
     width: 90%;
     margin-left: 5%;
     margin-top: 2%;
     color: var(--title-color);
 }
 
-.space{
+.space {
     padding: 1vh;
+}
+
+.navbar-custom {
+    background: linear-gradient(to right, var(--navbar-bg-start), var(--navbar-bg-end));
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+
+.nav-link {
+    transition: background-color 0.3s ease, color 0.3s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.nav-link.active {
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.3);
 }
