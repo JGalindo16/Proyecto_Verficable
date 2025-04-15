@@ -10,7 +10,7 @@
 Desde la raíz del proyecto, ejecutá el siguiente comando para importar el esquema SQL:
 
 ```bash
-mysql -h 127.0.0.1 -P 3306 -u user -p test_poc < db/db.sql
+mysql -h 127.0.0.1 -P 3307 -u user -p test_poc < db/db.sql
 ```
 
 La contraseña por defecto es: **`pass`**
@@ -22,7 +22,7 @@ La contraseña por defecto es: **`pass`**
 Ingresá al cliente de MySQL:
 
 ```bash
-mysql -h 127.0.0.1 -P 3306 -u user -p
+mysql -h 127.0.0.1 -P 3307 -u user -p
 ```
 
 Una vez dentro:
