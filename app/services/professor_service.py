@@ -17,7 +17,6 @@ class ProfessorService:
             return HTTP_BAD_REQUEST
 
     def get_all_professors(self):
-        # Alias para usar `id` en templates sin tener que cambiar HTML
         self.cursor.execute("SELECT professor_id AS id, name, email FROM professors")
         return self.cursor.fetchall()
 
