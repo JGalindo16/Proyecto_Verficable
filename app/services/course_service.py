@@ -44,7 +44,7 @@ class CourseService:
 
     def delete_course(self, id: int):
         try:
-            sql = "DELETE FROM courses WHERE id = %s"
+            sql = "DELETE FROM courses WHERE course_id = %s" 
             self.cursor.execute(sql, (id,))
             self.db.commit()
             return HTTP_OK
