@@ -4,31 +4,6 @@
     <title>Notas de la Sección</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .table-responsive {
-            overflow-x: auto;
-        }
-        .table th, .table td {
-            white-space: nowrap;
-            text-align: center;
-        }
-        .bg-light-yellow {
-            background-color: #ffffd0;
-            font-weight: bold;
-        }
-        .bg-light-blue {
-            background-color: #e6f2ff;
-            font-weight: bold;
-        }
-        /* Añadir bordes más visibles entre grupos de evaluaciones */
-        .evaluation-group-border {
-            border-left: 2px solid #dee2e6 !important;
-        }
-        /* Nombres de estudiantes alineados a la izquierda */
-        .text-left {
-            text-align: left;
-        }
-    </style>
 </head>
 <body class="container mt-5">
     <h2>Notas de la Sección: {{ section.name }}</h2>

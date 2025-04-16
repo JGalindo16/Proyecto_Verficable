@@ -40,3 +40,52 @@
     font-weight: bold;
     background-color: rgba(255, 255, 255, 0.3);
 }
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.table th, .table td {
+    white-space: nowrap;
+    text-align: center;
+}
+
+.bg-light-yellow {
+    background-color: #ffffd0;
+    font-weight: bold;
+}
+
+.bg-light-blue {
+    background-color: #e6f2ff;
+    font-weight: bold;
+}
+
+.evaluation-group-border {
+    border-left: 2px solid #dee2e6 !important;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+.table th, .table td {
+    white-space: nowrap;
+    text-align: center;
+}
+.bg-light-yellow {
+    background-color: #ffffd0;
+    font-weight: bold;
+}
+.bg-light-blue {
+    background-color: #e6f2ff;
+    font-weight: bold;
+}
+.evaluation-group-border {
+    border-left: 2px solid #dee2e6 !important;
+}
+.text-left {
+    text-align: left;
+}
