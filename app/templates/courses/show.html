@@ -36,9 +36,7 @@
                   <td>{{ inst.year }}</td>
                   <td>{{ inst.semester }}</td>
                   <td>
-                      <!-- Botón para abrir la página de la instancia -->
                       <a href="/courses/{{ data.id }}/instances/{{ inst.id }}" class="btn btn-sm btn-primary">Ver</a>
-                      <!-- Botón para abrir el modal de edición -->
                       <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editInstanceModal{{ inst.id }}">
                           Editar
                       </button>
@@ -48,7 +46,6 @@
                   </td>
               </tr>
           
-              <!-- Modal para editar la instancia -->
               <div class="modal fade" id="editInstanceModal{{ inst.id }}" tabindex="-1" aria-labelledby="editInstanceModalLabel{{ inst.id }}" aria-hidden="true">
                   <div class="modal-dialog">
                       <div class="modal-content">
@@ -82,13 +79,12 @@
           </tbody>
         </table>
 
-        <!-- Botón para abrir el modal -->
         <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createInstanceModal">
             Agregar instancia de curso
         </button>
     </div>
 
-    <!-- Modal para crear una nueva instancia -->
+    <!-- Modal -->
     <div class="modal fade" id="createInstanceModal" tabindex="-1" aria-labelledby="createInstanceModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
