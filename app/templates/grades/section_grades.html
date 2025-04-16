@@ -22,8 +22,28 @@
         <div class="card-body">
             <div class="row">
                 {% for eval_type, weight in evaluation_weights.items() %}
-                <div class="col-md-3 mb-2">
-                    <strong>{{ eval_type }}:</strong> {{ (weight * 100)|round|int }}%
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <strong>{{ eval_type }}:</strong> {{ (weight * 100)|round|int }}%
+                        </div>
+                        <div class="card-body">
+                            {% if students_data|length > 0 %}
+                                {% set student = students_data.values()|list|first %}
+                                {% set evals = student.evaluations.get(eval_type, []) %}
+                                <ul class="list-group list-group-flush">
+                                {% for eval in evals %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        {{ eval.name }}
+                                        <span class="badge bg-secondary">{{ (eval.specific_weight * 100)|round|int }}%</span>
+                                    </li>
+                                {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted">No hay evaluaciones disponibles</p>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
