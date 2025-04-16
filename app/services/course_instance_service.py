@@ -169,3 +169,66 @@ class CourseInstanceService:
         """, (section_id,))
         result = self.cursor.fetchall()
         return [row['student_id'] for row in result]
+
+    def get_course_grades(self, course_id, instance_id):
+        """Obtener todas las notas para un curso específico en una instancia"""
+        self.cursor.execute("""
+            SELECT 
+                s.section_id,
+                s.number as section_number,
+                st.student_id,
+                st.name as student_name,
+                e.type as evaluation_type,
+                e.weight as evaluation_weight,
+                ei.name as evaluation_name,
+                ei.specific_weight,
+                g.score
+            FROM grades g
+            JOIN evaluation_instances ei ON g.instance_eval_id = ei.instance_eval_id
+            JOIN evaluations e ON ei.evaluation_id = e.evaluation_id
+            JOIN enrollments en ON g.enrollment_id = en.enrollment_id
+            JOIN students st ON en.student_id = st.student_id
+            JOIN sections s ON en.section_id = s.section_id
+            JOIN course_instances ci ON s.instance_id = ci.instance_id
+            WHERE ci.course_id = %s AND ci.instance_id = %s
+            ORDER BY s.number, st.name, e.type, ei.name
+        """, (course_id, instance_id))
+        
+        return self.cursor.fetchall()
+
+    def get_section_grades(self, section_id):
+        """Obtener todas las notas para una sección específica"""
+        self.cursor.execute("""
+            SELECT 
+                st.student_id,
+                st.name as student_name,
+                e.type as evaluation_type,
+                e.weight as evaluation_weight,
+                ei.name as evaluation_name,
+                ei.specific_weight,
+                g.score
+            FROM grades g
+            JOIN evaluation_instances ei ON g.instance_eval_id = ei.instance_eval_id
+            JOIN evaluations e ON ei.evaluation_id = e.evaluation_id
+            JOIN enrollments en ON g.enrollment_id = en.enrollment_id
+            JOIN students st ON en.student_id = st.student_id
+            WHERE en.section_id = %s
+            ORDER BY st.name, e.type, ei.name
+        """, (section_id,))
+        
+        return self.cursor.fetchall()
+
+    def get_course_info_for_grades(self, course_id, instance_id):
+        """Obtener información del curso y la instancia para mostrar en la vista de notas"""
+        self.cursor.execute("""
+            SELECT 
+                c.name as course_name,
+                c.code as course_code,
+                ci.year,
+                ci.semester
+            FROM courses c
+            JOIN course_instances ci ON c.course_id = ci.course_id
+            WHERE c.course_id = %s AND ci.instance_id = %s
+        """, (course_id, instance_id))
+        
+        return self.cursor.fetchone()

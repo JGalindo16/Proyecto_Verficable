@@ -134,3 +134,171 @@ def update_section(course_id, instance_id, section_id):
     
     # Redirigir de vuelta a la página de detalle de sección
     return redirect(f'/courses/{course_id}/instances/{instance_id}/sections/{section_id}')
+
+@course_instance_bp.route('/courses/<int:course_id>/instances/<int:instance_id>/grades')
+def view_course_grades(course_id, instance_id):
+    # Obtener información del curso y la instancia
+    course_info = instance_service.get_course_info_for_grades(course_id, instance_id)
+    if not course_info:
+        return "Curso o instancia no encontrada", 404
+    
+    # Obtener las notas
+    grades_data = instance_service.get_course_grades(course_id, instance_id)
+    
+    # Procesar los datos para la vista
+    # Organizar por estudiante y tipo de evaluación
+    students_data = {}
+    evaluation_types = set()
+    evaluation_weights = {}
+    
+    for grade in grades_data:
+        student_id = grade['student_id']
+        student_name = grade['student_name']
+        evaluation_type = grade['evaluation_type']
+        evaluation_weight = grade['evaluation_weight']
+        evaluation_name = grade['evaluation_name']
+        specific_weight = grade['specific_weight']
+        score = grade['score']
+        section_number = grade['section_number']
+        
+        # Registrar tipos de evaluación y sus pesos
+        if evaluation_type not in evaluation_weights:
+            evaluation_weights[evaluation_type] = evaluation_weight
+        evaluation_types.add(evaluation_type)
+        
+        # Organizar datos por estudiante
+        if student_id not in students_data:
+            students_data[student_id] = {
+                'name': student_name,
+                'section': section_number,
+                'evaluations': {},
+                'type_averages': {},
+                'final_average': 0
+            }
+        
+        # Agregar la evaluación al estudiante
+        if evaluation_type not in students_data[student_id]['evaluations']:
+            students_data[student_id]['evaluations'][evaluation_type] = []
+        
+        students_data[student_id]['evaluations'][evaluation_type].append({
+            'name': evaluation_name,
+            'specific_weight': specific_weight,
+            'score': score
+        })
+    
+    # Calcular promedios por tipo y promedio final
+    for student_id, student in students_data.items():
+        final_score = 0
+        
+        for eval_type, evals in student['evaluations'].items():
+            # Calcular promedio ponderado para este tipo
+            type_total = 0
+            weight_sum = 0
+            
+            for eval_item in evals:
+                type_total += eval_item['score'] * eval_item['specific_weight']
+                weight_sum += eval_item['specific_weight']
+            
+            if weight_sum > 0:
+                type_avg = type_total / weight_sum
+            else:
+                type_avg = 0
+                
+            student['type_averages'][eval_type] = round(type_avg, 1)
+            final_score += type_avg * evaluation_weights[eval_type]
+        
+        student['final_average'] = round(final_score, 1)
+    
+    return render_template(
+        'grades/course_grades.html',
+        course_info=course_info,
+        students_data=students_data,
+        evaluation_types=sorted(list(evaluation_types)),
+        evaluation_weights=evaluation_weights,
+        course_id=course_id,
+        instance_id=instance_id
+    )
+
+@course_instance_bp.route('/courses/<int:course_id>/instances/<int:instance_id>/sections/<int:section_id>/grades')
+def view_section_grades(course_id, instance_id, section_id):
+    # Obtener información del curso y la sección
+    course = course_service.get_course_by_id(course_id)
+    instance = instance_service.get_instance_by_id(instance_id)
+    section = instance_service.get_section_by_id(section_id)
+    
+    if not course or not instance or not section:
+        return "Recurso no encontrado", 404
+    
+    # Obtener las notas de la sección
+    grades_data = instance_service.get_section_grades(section_id)
+    
+    # Procesar los datos para la vista
+    students_data = {}
+    evaluation_types = set()
+    evaluation_weights = {}
+    
+    for grade in grades_data:
+        student_id = grade['student_id']
+        student_name = grade['student_name']
+        evaluation_type = grade['evaluation_type']
+        evaluation_weight = grade['evaluation_weight']
+        evaluation_name = grade['evaluation_name']
+        specific_weight = grade['specific_weight']
+        score = grade['score']
+        
+        # Registrar tipos de evaluación y sus pesos
+        if evaluation_type not in evaluation_weights:
+            evaluation_weights[evaluation_type] = evaluation_weight
+        evaluation_types.add(evaluation_type)
+        
+        # Organizar datos por estudiante
+        if student_id not in students_data:
+            students_data[student_id] = {
+                'name': student_name,
+                'evaluations': {},
+                'type_averages': {},
+                'final_average': 0
+            }
+        
+        # Agregar la evaluación al estudiante
+        if evaluation_type not in students_data[student_id]['evaluations']:
+            students_data[student_id]['evaluations'][evaluation_type] = []
+        
+        students_data[student_id]['evaluations'][evaluation_type].append({
+            'name': evaluation_name,
+            'specific_weight': specific_weight,
+            'score': score
+        })
+    
+    # Calcular promedios por tipo y promedio final
+    for student_id, student in students_data.items():
+        final_score = 0
+        
+        for eval_type, evals in student['evaluations'].items():
+            # Calcular promedio ponderado para este tipo
+            type_total = 0
+            weight_sum = 0
+            
+            for eval_item in evals:
+                type_total += eval_item['score'] * eval_item['specific_weight']
+                weight_sum += eval_item['specific_weight']
+            
+            if weight_sum > 0:
+                type_avg = type_total / weight_sum
+            else:
+                type_avg = 0
+                
+            student['type_averages'][eval_type] = round(type_avg, 1)
+            final_score += type_avg * evaluation_weights[eval_type]
+        
+        student['final_average'] = round(final_score, 1)
+    
+    return render_template(
+        'grades/section_grades.html',
+        course=course,
+        instance=instance,
+        section=section,
+        students_data=students_data,
+        evaluation_types=sorted(list(evaluation_types)),
+        evaluation_weights=evaluation_weights
+    )

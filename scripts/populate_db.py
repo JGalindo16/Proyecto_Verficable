@@ -4,6 +4,7 @@ import random
 import sys
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
+from collections import defaultdict
 
 # Añadir la ruta raíz al path para poder importar la configuración desde cualquier ubicación
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -147,11 +148,11 @@ def insert_students(cursor):
                   "Rocío", "Javier", "Magdalena", "Eduardo", "Victoria",
                   "Álvaro", "Consuelo", "Rodrigo", "Paulina", "Alonso"]
     
-    # Generar 100 estudiantes (aumentado de 50)
+    # Generar 120 estudiantes (más de lo necesario para asegurar suficiente disponibilidad)
     students = []
     emails_used = set()
     
-    for _ in range(100):
+    for _ in range(120):
         first_name = random.choice(first_names)
         surname = random.choice(surnames)
         full_name = f"{first_name} {surname}"
@@ -200,159 +201,251 @@ def insert_course_instances(cursor):
     
     print(f"Se insertaron {len(instances)} instancias de cursos")
 
-def insert_sections(cursor):
-    """Insertar secciones para cada instancia de curso"""
-    print("Insertando secciones...")
+def insert_sections_and_enrollments(cursor):
+    """Insertar secciones para cada instancia de curso y gestionar inscripciones de estudiantes"""
+    print("Insertando secciones e inscripciones...")
     
     # Obtener IDs de instancias
-    cursor.execute("SELECT instance_id FROM course_instances")
-    instance_ids = [row[0] for row in cursor.fetchall()]
+    cursor.execute("SELECT instance_id, course_id FROM course_instances")
+    instance_data = cursor.fetchall()
+    
+    # Organizar instancias por curso para garantizar que un estudiante no esté en más de una sección por curso
+    course_instances = defaultdict(list)
+    for instance in instance_data:
+        course_instances[instance[1]].append(instance[0])
     
     # Obtener IDs de profesores
     cursor.execute("SELECT professor_id FROM professors")
     professor_ids = [row[0] for row in cursor.fetchall()]
     
-    sections = []
-    for instance_id in instance_ids:
-        # Crear entre 1 y 5 secciones para cada instancia (aumentado de 4)
-        num_sections = random.randint(1, 5)
-        for section_num in range(1, num_sections + 1):
-            # Asignar un profesor aleatorio
-            professor_id = random.choice(professor_ids)
-            sections.append((instance_id, section_num, professor_id))
-    
-    for instance_id, number, professor_id in sections:
-        cursor.execute("INSERT INTO sections (instance_id, number, professor_id) VALUES (%s, %s, %s)", 
-                      (instance_id, number, professor_id))
-    
-    print(f"Se insertaron {len(sections)} secciones")
-
-def insert_enrollments(cursor):
-    """Inscribir estudiantes en las secciones"""
-    print("Inscribiendo estudiantes en secciones...")
-    
-    # Obtener IDs de secciones
-    cursor.execute("SELECT section_id FROM sections")
-    section_ids = [row[0] for row in cursor.fetchall()]
-    
-    # Obtener IDs de estudiantes
+    # Obtener todos los estudiantes
     cursor.execute("SELECT student_id FROM students")
-    student_ids = [row[0] for row in cursor.fetchall()]
+    all_student_ids = [row[0] for row in cursor.fetchall()]
     
-    enrollments = []
-    # Para cada sección, inscribir entre 10 y 30 estudiantes aleatorios (aumentado)
-    for section_id in section_ids:
-        # Determinar cuántos estudiantes se inscribirán en esta sección
-        num_students = random.randint(10, min(30, len(student_ids)))
+    # Diccionario para rastrear las asignaciones de estudiantes por instancia de curso
+    # Estructura: {instance_id: {student_id: section_id}}
+    student_assignments = defaultdict(dict)
+    
+    # Mapeo de cursos a estudiantes asignados (para reutilización entre instancias)
+    # Estructura: {course_id: [lista de student_ids]}
+    course_student_pool = {}
+    
+    sections_created = 0
+    enrollments_created = 0
+    
+    # Para cada curso, creamos secciones y asignamos estudiantes
+    for course_id, instances in course_instances.items():
+        # Crear un pool de 30-60 estudiantes para este curso (que se reutilizará en diferentes instancias)
+        if course_id not in course_student_pool:
+            num_course_students = random.randint(30, min(60, len(all_student_ids)))
+            course_student_pool[course_id] = random.sample(all_student_ids, num_course_students)
         
-        # Seleccionar estudiantes aleatorios sin repetir
-        selected_students = random.sample(student_ids, num_students)
+        course_students = course_student_pool[course_id]
         
-        for student_id in selected_students:
-            enrollments.append((student_id, section_id))
-    
-    for student_id, section_id in enrollments:
-        cursor.execute("INSERT INTO enrollments (student_id, section_id) VALUES (%s, %s)", 
-                      (student_id, section_id))
-    
-    print(f"Se insertaron {len(enrollments)} matrículas")
-
-def insert_evaluations(cursor):
-    """Insertar evaluaciones para las secciones"""
-    print("Insertando evaluaciones...")
-    
-    # Obtener IDs de secciones
-    cursor.execute("SELECT section_id FROM sections")
-    section_ids = [row[0] for row in cursor.fetchall()]
-    
-    # Tipos comunes de evaluaciones con sus pesos
-    evaluation_types = [
-        ("Examen", 0.3, False),
-        ("Control", 0.4, False),
-        ("Tarea", 0.2, False),
-        ("Proyecto", 0.1, False)  # Añadido un tipo más de evaluación
-    ]
-    
-    evaluations = []
-    for section_id in section_ids:
-        for eval_type, weight, optional in evaluation_types:
-            evaluations.append((section_id, eval_type, weight, optional))
-    
-    for section_id, eval_type, weight, optional in evaluations:
-        cursor.execute("INSERT INTO evaluations (section_id, type, weight, optional) VALUES (%s, %s, %s, %s)", 
-                      (section_id, eval_type, weight, optional))
-    
-    print(f"Se insertaron {len(evaluations)} evaluaciones")
-    
-    # Ahora insertamos las instancias de evaluación
-    cursor.execute("SELECT evaluation_id, type FROM evaluations")
-    evaluation_data = cursor.fetchall()
-    
-    evaluation_instances = []
-    for eval_data in evaluation_data:
-        eval_id = eval_data[0]
-        eval_type = eval_data[1]
-        
-        # Determinar cuántas instancias de esta evaluación habrá
-        if eval_type == "Examen":
-            num_instances = random.randint(1, 2)  # Posibilidad de examen de recuperación
-        elif eval_type == "Control":
-            num_instances = random.randint(3, 5)  # Más controles
-        elif eval_type == "Proyecto":
-            num_instances = 1
-        else:  # Tareas
-            num_instances = random.randint(4, 8)  # Más tareas
-        
-        # Peso específico para cada instancia
-        specific_weight = 1.0 / num_instances
-        
-        for i in range(1, num_instances + 1):
-            name = f"{eval_type} {i}"
-            mandatory = True if random.random() > 0.1 else False
-            evaluation_instances.append((eval_id, name, specific_weight, mandatory))
-    
-    for eval_id, name, specific_weight, mandatory in evaluation_instances:
-        cursor.execute("""
-            INSERT INTO evaluation_instances 
-            (evaluation_id, name, specific_weight, mandatory) 
-            VALUES (%s, %s, %s, %s)
-        """, (eval_id, name, specific_weight, mandatory))
-    
-    print(f"Se insertaron {len(evaluation_instances)} instancias de evaluación")
-
-def insert_grades(cursor):
-    """Insertar notas aleatorias para los estudiantes inscritos"""
-    print("Insertando notas...")
-    
-    # Obtener las inscripciones y las instancias de evaluación correspondientes
-    cursor.execute("""
-        SELECT e.enrollment_id, ei.instance_eval_id 
-        FROM enrollments e 
-        JOIN sections s ON e.section_id = s.section_id
-        JOIN evaluations ev ON s.section_id = ev.section_id
-        JOIN evaluation_instances ei ON ev.evaluation_id = ei.evaluation_id
-    """)
-    potential_grades = cursor.fetchall()
-    
-    # Para no sobrecargar la base de datos, seleccionamos un 90% aleatorio (aumentado)
-    sample_size = int(len(potential_grades) * 0.9)
-    grade_samples = random.sample(potential_grades, sample_size)
-    
-    grades = []
-    for grade_data in grade_samples:
-        # Generar una nota aleatoria entre 1.0 y 7.0 con una distribución más realista
-        if random.random() < 0.7:  # 70% de notas aprobatorias
-            score = round(random.uniform(4.0, 7.0), 1)
-        else:
-            score = round(random.uniform(1.0, 3.9), 1)
+        for instance_id in instances:
+            # Crear entre 1 y 3 secciones para esta instancia
+            num_sections = random.randint(1, 3)
+            sections = []
             
-        grades.append((grade_data[1], grade_data[0], score))
+            # Dividir el pool de estudiantes entre las secciones
+            students_per_section = []
+            remaining_students = course_students.copy()
+            
+            for i in range(num_sections):
+                # Para la última sección, usar todos los estudiantes restantes
+                if i == num_sections - 1:
+                    students_per_section.append(remaining_students)
+                else:
+                    # Calcular cuántos estudiantes asignar a esta sección
+                    section_size = len(remaining_students) // (num_sections - i)
+                    section_students = random.sample(remaining_students, section_size)
+                    students_per_section.append(section_students)
+                    
+                    # Eliminar los estudiantes asignados del grupo restante
+                    for student_id in section_students:
+                        remaining_students.remove(student_id)
+            
+            # Crear secciones y asignar estudiantes
+            for section_num in range(1, num_sections + 1):
+                # Asignar un profesor aleatorio
+                professor_id = random.choice(professor_ids)
+                
+                # Insertar la sección
+                cursor.execute(
+                    "INSERT INTO sections (instance_id, number, professor_id) VALUES (%s, %s, %s)", 
+                    (instance_id, section_num, professor_id)
+                )
+                section_id = cursor.lastrowid
+                sections_created += 1
+                
+                # Asignar estudiantes a la sección
+                section_students = students_per_section[section_num - 1]
+                for student_id in section_students:
+                    cursor.execute(
+                        "INSERT INTO enrollments (student_id, section_id) VALUES (%s, %s)", 
+                        (student_id, section_id)
+                    )
+                    enrollments_created += 1
+                    
+                    # Registrar esta asignación
+                    student_assignments[instance_id][student_id] = section_id
+                
+                # Guardar la sección y su información para el retorno
+                sections.append({
+                    'id': section_id,
+                    'number': section_num, 
+                    'professor_id': professor_id, 
+                    'students': section_students
+                })
     
-    for instance_eval_id, enrollment_id, score in grades:
-        cursor.execute("INSERT INTO grades (instance_eval_id, enrollment_id, score) VALUES (%s, %s, %s)", 
-                      (instance_eval_id, enrollment_id, score))
+    print(f"Se insertaron {sections_created} secciones")
+    print(f"Se insertaron {enrollments_created} inscripciones")
     
-    print(f"Se insertaron {len(grades)} notas")
+    return student_assignments
+
+def insert_evaluations_and_grades(cursor, student_assignments):
+    """Insertar evaluaciones y calificaciones para todos los estudiantes"""
+    print("Insertando evaluaciones y calificaciones...")
+    
+    # Obtener todas las secciones por instancia
+    cursor.execute("""
+        SELECT s.section_id, s.instance_id, ci.course_id, ci.year, ci.semester
+        FROM sections s
+        JOIN course_instances ci ON s.instance_id = ci.instance_id
+    """)
+    sections_data = cursor.fetchall()
+    
+    # Agrupar secciones por instancia
+    instances_sections = defaultdict(list)
+    for section in sections_data:
+        instances_sections[section[1]].append({
+            'section_id': section[0],
+            'instance_id': section[1],
+            'course_id': section[2],
+            'year': section[3],
+            'semester': section[4]
+        })
+    
+    total_evaluations = 0
+    total_evaluation_instances = 0
+    total_grades = 0
+    
+    # Para cada instancia de curso, crear evaluaciones consistentes entre todas sus secciones
+    for instance_id, sections in instances_sections.items():
+        # Definir los tipos de evaluación para esta instancia
+        evaluation_types = []
+        
+        # Siempre añadimos un examen
+        evaluation_types.append(("Examen", 0.4, False))
+        
+        # Elegir aleatoriamente entre otros tipos de evaluación
+        possible_types = [
+            ("Control", 0.3, False),
+            ("Tarea", 0.2, False),
+            ("Proyecto", 0.1, False),
+            ("Presentación", 0.1, False)
+        ]
+        
+        # Seleccionar 2-3 tipos adicionales de evaluación
+        num_additional = random.randint(2, 3)
+        selected_types = random.sample(possible_types, num_additional)
+        evaluation_types.extend(selected_types)
+        
+        # Normalizar los pesos para que sumen 1.0
+        total_weight = sum(t[1] for t in evaluation_types)
+        evaluation_types = [(t[0], t[1]/total_weight, t[2]) for t in evaluation_types]
+        
+        # Definir cuántas instancias de cada tipo de evaluación habrá
+        evaluation_instances_count = {}
+        for eval_type, _, _ in evaluation_types:
+            if eval_type == "Examen":
+                # Solo 1 examen
+                evaluation_instances_count[eval_type] = 1
+            elif eval_type == "Control":
+                # 2-4 controles
+                evaluation_instances_count[eval_type] = random.randint(2, 4)
+            elif eval_type == "Tarea":
+                # 3-6 tareas
+                evaluation_instances_count[eval_type] = random.randint(3, 6)
+            elif eval_type == "Proyecto":
+                # 1 proyecto
+                evaluation_instances_count[eval_type] = 1
+            else:
+                # Otros tipos, 1-2 instancias
+                evaluation_instances_count[eval_type] = random.randint(1, 2)
+        
+        # Para cada sección, insertar las evaluaciones
+        evaluation_instances_by_type = {}
+        for section in sections:
+            section_id = section['section_id']
+            
+            # Insertar tipos de evaluación
+            for eval_type, weight, optional in evaluation_types:
+                cursor.execute(
+                    "INSERT INTO evaluations (section_id, type, weight, optional) VALUES (%s, %s, %s, %s)",
+                    (section_id, eval_type, weight, optional)
+                )
+                evaluation_id = cursor.lastrowid
+                total_evaluations += 1
+                
+                # Crear instancias de evaluación
+                instances_for_type = []
+                instance_count = evaluation_instances_count[eval_type]
+                
+                for i in range(1, instance_count + 1):
+                    name = f"{eval_type} {i}"
+                    specific_weight = 1.0 / instance_count
+                    mandatory = True if random.random() > 0.1 else False
+                    
+                    cursor.execute("""
+                        INSERT INTO evaluation_instances 
+                        (evaluation_id, name, specific_weight, mandatory) 
+                        VALUES (%s, %s, %s, %s)
+                    """, (evaluation_id, name, specific_weight, mandatory))
+                    instance_eval_id = cursor.lastrowid
+                    total_evaluation_instances += 1
+                    instances_for_type.append(instance_eval_id)
+                
+                # Guardar las instancias de evaluación para este tipo
+                if eval_type not in evaluation_instances_by_type:
+                    evaluation_instances_by_type[eval_type] = {}
+                evaluation_instances_by_type[eval_type][section_id] = instances_for_type
+        
+        # Ahora asignar notas a los estudiantes
+        for student_id, section_id in student_assignments[instance_id].items():
+            # Primero obtener el ID de inscripción
+            cursor.execute(
+                "SELECT enrollment_id FROM enrollments WHERE student_id = %s AND section_id = %s",
+                (student_id, section_id)
+            )
+            enrollment = cursor.fetchone()
+            if not enrollment:
+                continue  # Saltamos si no hay inscripción (no debería ocurrir)
+                
+            enrollment_id = enrollment[0]
+            
+            # Asignar notas para todas las instancias de evaluación de esta sección
+            for eval_type, sections_instances in evaluation_instances_by_type.items():
+                if section_id not in sections_instances:
+                    continue
+                    
+                for instance_eval_id in sections_instances[section_id]:
+                    # Generar una nota aleatoria con distribución realista
+                    if random.random() < 0.7:  # 70% notas aprobatorias
+                        score = round(random.uniform(4.0, 7.0), 1)
+                    else:
+                        score = round(random.uniform(1.0, 3.9), 1)
+                        
+                    # Insertar la nota
+                    cursor.execute(
+                        "INSERT INTO grades (instance_eval_id, enrollment_id, score) VALUES (%s, %s, %s)",
+                        (instance_eval_id, enrollment_id, score)
+                    )
+                    total_grades += 1
+
+    print(f"Se insertaron {total_evaluations} evaluaciones")
+    print(f"Se insertaron {total_evaluation_instances} instancias de evaluación")
+    print(f"Se insertaron {total_grades} calificaciones")
 
 def main():
     """Función principal para poblar la base de datos"""
@@ -372,10 +465,12 @@ def main():
         insert_professors(cursor)
         insert_students(cursor)
         insert_course_instances(cursor)
-        insert_sections(cursor)
-        insert_enrollments(cursor)
-        insert_evaluations(cursor)
-        insert_grades(cursor)
+        
+        # Insertar secciones y estudiantes (con las restricciones de asignación)
+        student_assignments = insert_sections_and_enrollments(cursor)
+        
+        # Insertar evaluaciones y calificaciones para todas las asignaciones
+        insert_evaluations_and_grades(cursor, student_assignments)
         
         # Reactivar verificación de claves foráneas
         cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
@@ -390,6 +485,8 @@ def main():
         # En caso de error, revertir cambios
         connection.rollback()
         print(f"Error al poblar la base de datos: {e}")
+        import traceback
+        traceback.print_exc()
         
     finally:
         # Cerrar conexiones
