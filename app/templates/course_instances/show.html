@@ -38,18 +38,10 @@
                     <td>{{ section.student_count }}</td>
                     <td>
                         <a href="/courses/{{ course.id }}/instances/{{ instance.id }}/sections/{{ section.id }}" class="btn btn-sm btn-primary">Ver</a>
-                        <button type="button" class="btn btn-sm btn-warning" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#editSectionModal{{ section.id }}">
-                            Editar
-                        </button>
-                        <form action="/courses/{{ course.id }}/instances/{{ instance.id }}/sections/{{ section.id }}/delete" method="POST" style="display:inline;">
-                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar esta sección?')">Eliminar</button>
-                        </form>
+                        
                     </td>
                 </tr>
 
-                <!-- Modal para editar la sección -->
                 <div class="modal fade" id="editSectionModal{{ section.id }}" tabindex="-1" aria-labelledby="editSectionModalLabel{{ section.id }}" aria-hidden="true">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
@@ -250,7 +242,6 @@
             });
         });
 
-        // Código para los modales de edición de secciones
         document.querySelectorAll('.student-search').forEach(search => {
             search.addEventListener('input', function() {
                 const searchTerm = this.value.toLowerCase();
@@ -296,10 +287,8 @@
                 checkbox.addEventListener('change', () => updateSelectedCount(modal));
             });
             
-            // Inicializar contadores
             updateSelectedCount(modal);
             
-            // Reiniciar búsqueda al abrir modal
             modal.addEventListener('shown.bs.modal', function() {
                 const search = this.querySelector('.student-search');
                 if (search) {
