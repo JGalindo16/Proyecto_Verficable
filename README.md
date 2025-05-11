@@ -19,7 +19,7 @@ La contraseña por defecto es: **`pass`**
 
 ### 2. Verificar que las tablas se hayan creado
 
-Ingresá al cliente de MySQL:
+Ingresa al cliente de MySQL:
 
 ```bash
 mysql -h 127.0.0.1 -P 3307 -u user -p
