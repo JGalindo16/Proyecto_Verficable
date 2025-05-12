@@ -3,6 +3,7 @@ from app.routes.course_routes import course_bp
 from app.routes.professor_routes import professor_bp
 from app.routes.student_routes import student_bp
 from app.routes.course_instance_routes import course_instance_bp
+from app.routes.evaluation_routes import evaluation_bp
 from app.http_errors import HTTP_NOT_FOUND
 
 def create_app():
@@ -12,6 +13,7 @@ def create_app():
     app.register_blueprint(professor_bp)
     app.register_blueprint(student_bp)
     app.register_blueprint(course_instance_bp)
+    app.register_blueprint(evaluation_bp)
 
     @app.errorhandler(HTTP_NOT_FOUND)
     def not_found(e):
