@@ -224,6 +224,8 @@ def view_section_grades(course_id, instance_id, section_id):
         evaluation_name = grade['evaluation_name']
         specific_weight = grade['specific_weight']
         score = grade['score']
+        instance_eval_id = grade['instance_eval_id'] 
+
         
         if evaluation_type not in evaluation_weights:
             evaluation_weights[evaluation_type] = evaluation_weight
@@ -243,7 +245,8 @@ def view_section_grades(course_id, instance_id, section_id):
         students_data[student_id]['evaluations'][evaluation_type].append({
             'name': evaluation_name,
             'specific_weight': specific_weight,
-            'score': score
+            'score': score,
+            'instance_eval_id': instance_eval_id
         })
     
     for student_id, student in students_data.items():
@@ -254,8 +257,9 @@ def view_section_grades(course_id, instance_id, section_id):
             weight_sum = 0
             
             for eval_item in evals:
-                type_total += eval_item['score'] * eval_item['specific_weight']
-                weight_sum += eval_item['specific_weight']
+                if eval_item['score'] is not None:
+                    type_total += eval_item['score'] * eval_item['specific_weight']
+                    weight_sum += eval_item['specific_weight']
             
             if weight_sum > 0:
                 type_avg = type_total / weight_sum
@@ -276,3 +280,33 @@ def view_section_grades(course_id, instance_id, section_id):
         evaluation_types=sorted(list(evaluation_types)),
         evaluation_weights=evaluation_weights
     )
+
+@course_instance_bp.route('/grades/update', methods=['POST'])
+def update_grade():
+    from app.services.course_instance_service import CourseInstanceService
+    service = CourseInstanceService()
+
+    data = request.json
+    print("DEBUG /grades/update:", data)
+    section_id = data.get('section_id')
+    student_id = data.get('student_id')
+    instance_eval_id = data.get('instance_eval_id')
+    score = data.get('score')
+
+    if section_id is None or student_id is None or instance_eval_id is None or score is None:
+        return {"success": False, "message": "Faltan parámetros"}, 400
+
+    try:
+        score = float(score)
+    except (ValueError, TypeError):
+        return {"success": False, "message": "Score inválido"}, 400
+
+    success, type_avg, final_avg = service.create_or_update_grade(
+        int(section_id), int(student_id), int(instance_eval_id), score
+    )
+
+    return {
+        "success": success,
+        "type_average": type_avg,
+        "final_average": final_avg
+    }, 200 if success else 500

@@ -10,7 +10,7 @@ DROP TABLE IF EXISTS professors;
 DROP TABLE IF EXISTS courses;
 
 -- =============================
--- Tabla: courses (ya está bien)
+-- Tabla: courses
 -- =============================
 CREATE TABLE courses (
     course_id INT AUTO_INCREMENT PRIMARY KEY,
