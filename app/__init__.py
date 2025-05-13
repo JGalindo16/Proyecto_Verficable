@@ -4,16 +4,19 @@ from app.routes.professor_routes import professor_bp
 from app.routes.student_routes import student_bp
 from app.routes.course_instance_routes import course_instance_bp
 from app.routes.evaluation_routes import evaluation_bp
+from app.routes.json_upload_routes import json_upload_bp
 from app.http_errors import HTTP_NOT_FOUND
 
 def create_app():
     app = Flask(__name__, template_folder='templates', static_folder='static')
+    app.secret_key = 'your-secret-key'
 
     app.register_blueprint(course_bp)
     app.register_blueprint(professor_bp)
     app.register_blueprint(student_bp)
     app.register_blueprint(course_instance_bp)
     app.register_blueprint(evaluation_bp)
+    app.register_blueprint(json_upload_bp)
 
     @app.errorhandler(HTTP_NOT_FOUND)
     def not_found(e):
