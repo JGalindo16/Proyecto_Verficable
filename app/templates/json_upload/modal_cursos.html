@@ -1,0 +1,52 @@
+<div class="modal fade" id="modalUploadCursos" tabindex="-1" aria-labelledby="modalUploadCursosLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-info">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title" id="modalUploadCursosLabel">📘 Subir Cursos desde JSON</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+  
+        <div class="modal-body">
+          <p>
+            Sube el archivo <code>3-cursos.json</code> que contiene la información de todos los cursos junto con sus prerrequisitos (si los hay).
+          </p>
+          <pre><code>{
+    "cursos": [
+      {
+        "codigo": "ICC1001",
+        "nombre": "Introducción a la Ingeniería",
+        "descripcion": "Curso de nivelación para estudiantes de primer año",
+        "creditos": 10,
+        "prerrequisitos": ["MAT1001", "PHY1001"]
+      }
+    ]
+  }</code></pre>
+  
+          <div class="alert alert-info">
+            <strong>Validaciones que se aplicarán:</strong>
+            <ul class="mb-0">
+              <li>✔️ <code>codigo</code> y <code>nombre</code> son obligatorios y deben ser strings no vacíos.</li>
+              <li>✔️ <code>creditos</code> debe ser un número entero igual o mayor a 0 (opcional, default: 0).</li>
+              <li>✔️ <code>descripcion</code> puede estar vacía (opcional).</li>
+              <li>✔️ <code>prerrequisitos</code> debe ser una lista de códigos válidos de otros cursos. Se ignorará si está ausente.</li>
+              <li>❌ Si un código de prerrequisito no corresponde a un curso existente, se ignorará esa relación.</li>
+            </ul>
+          </div>
+  
+          {% if message %}
+            <div class="alert alert-{{ 'success' if success else 'danger' }}">{{ message }}</div>
+          {% endif %}
+  
+          <form method="POST" action="/json-upload/cursos" enctype="multipart/form-data">
+            <div class="mb-3">
+              <label for="jsonFileCursos" class="form-label">Archivo JSON</label>
+              <input class="form-control" type="file" name="json_file" id="jsonFileCursos" accept=".json" required>
+            </div>
+            <div class="text-end">
+              <button type="submit" class="btn btn-primary">Subir archivo</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>

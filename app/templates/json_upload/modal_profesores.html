@@ -1,0 +1,49 @@
+<div class="modal fade" id="modalUploadProfesores" tabindex="-1" aria-labelledby="modalUploadProfesoresLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-info">
+        <div class="modal-header bg-info text-dark">
+          <h5 class="modal-title" id="modalUploadProfesoresLabel">👨‍🏫 Subir Profesores desde JSON</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+  
+        <div class="modal-body">
+          <p>
+            Por favor sube el archivo <code>2-profesores.json</code> con los datos de los profesores. Este archivo debe tener una estructura como:
+          </p>
+          <pre><code>{
+    "profesores": [
+      {
+        "id": 1,
+        "nombre": "Ana Torres",
+        "correo": "ana@example.com"
+      }
+    ]
+  }</code></pre>
+  
+          <div class="alert alert-info">
+            <strong>Validaciones que se aplicarán:</strong>
+            <ul class="mb-0">
+              <li>✔️ El campo <code>correo</code> debe tener un formato válido y no repetirse.</li>
+              <li>✔️ Todos los campos son requeridos: <code>nombre</code> (string), <code>correo</code> (string).</li>
+              <li>✔️ Si no se proporciona <code>id</code>, se asignará automáticamente uno disponible.</li>
+              <li>❌ Correos duplicados provocarán error de carga.</li>
+            </ul>
+          </div>
+  
+          {% if message %}
+            <div class="alert alert-{{ 'success' if success else 'danger' }}">{{ message }}</div>
+          {% endif %}
+  
+          <form action="/json-upload/profesores" method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+              <label for="jsonFileProfesores" class="form-label">Archivo JSON</label>
+              <input class="form-control" type="file" name="json_file" id="jsonFileProfesores" accept=".json" required>
+            </div>
+            <div class="text-end">
+              <button type="submit" class="btn btn-primary">Subir archivo</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>

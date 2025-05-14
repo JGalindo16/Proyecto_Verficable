@@ -1,0 +1,45 @@
+<div class="modal fade" id="modalUploadInstancias" tabindex="-1" aria-labelledby="modalUploadInstanciasLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-info">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title" id="modalUploadInstanciasLabel">📚 Subir Instancias de Curso</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p>Sube el archivo <code>4-instancias_cursos.json</code> para registrar cuándo se dicta cada curso.</p>
+          <pre><code>{
+          {
+            año: 2024,
+            semestre: 1,
+            instancias: [
+              {
+                curso_id: 101,
+                id: 1
+              }
+            ]
+          }
+  }</code></pre>
+  
+          <div class="alert alert-info">
+            <strong>Validaciones:</strong>
+            <ul>
+              <li>✔️ <code>curso_id</code> debe existir previamente en la base de datos.</li>
+              <li>✔️ <code>anio</code> debe ser un número entero.</li>
+              <li>✔️ <code>semestre</code> debe ser texto válido (e.g., "Otoño", "Primavera").</li>
+              <li>❌ No se permiten valores vacíos ni tipos erróneos.</li>
+            </ul>
+          </div>
+  
+          <form method="POST" action="/json-upload/instancias" enctype="multipart/form-data">
+            <div class="mb-3">
+              <label for="jsonFileInstancias" class="form-label">Archivo JSON</label>
+              <input class="form-control" type="file" name="json_file" id="jsonFileInstancias" accept=".json" required>
+            </div>
+            <div class="text-end">
+              <button type="submit" class="btn btn-primary">Subir archivo</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>

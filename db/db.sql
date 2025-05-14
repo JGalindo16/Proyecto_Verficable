@@ -15,7 +15,9 @@ DROP TABLE IF EXISTS courses;
 CREATE TABLE courses (
     course_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    code VARCHAR(20) NOT NULL
+    code VARCHAR(20) NOT NULL,
+    descripcion TEXT DEFAULT NULL,
+    creditos INT DEFAULT NULL
 );
 
 -- =============================
@@ -105,4 +107,24 @@ CREATE TABLE grades (
     score FLOAT NOT NULL CHECK (score BETWEEN 1.0 AND 7.0),
     FOREIGN KEY (instance_eval_id) REFERENCES evaluation_instances(instance_eval_id) ON DELETE CASCADE,
     FOREIGN KEY (enrollment_id) REFERENCES enrollments(enrollment_id) ON DELETE CASCADE
+);
+
+-- =============================
+-- Tabla: course_prerequisites
+-- =============================
+CREATE TABLE course_prerequisites (
+    course_id INT NOT NULL,
+    prerequisite_id INT NOT NULL,
+    PRIMARY KEY (course_id, prerequisite_id),
+    FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE,
+    FOREIGN KEY (prerequisite_id) REFERENCES courses(course_id) ON DELETE CASCADE
+);
+
+-- =============================
+-- Tabla: classrooms
+-- =============================
+CREATE TABLE classrooms (
+    classroom_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    capacity INT NOT NULL
 );

@@ -20,3 +20,63 @@ def upload_alumnos():
     
     flash(message, 'success' if success else 'danger')
     return redirect('/')
+
+@json_upload_bp.route('/json-upload/profesores', methods=['POST'])
+def upload_profesores():
+    message = None
+    success = False
+
+    file = request.files.get('json_file')
+    if not file:
+        message = "Debe subir un archivo."
+    else:
+        success, message = service.load_profesores(file)
+
+    flash(message, 'success' if success else 'danger')
+    return redirect('/')
+
+@json_upload_bp.route('/json-upload/cursos', methods=['POST'])
+def upload_cursos():
+    file = request.files.get('json_file')
+    success, message = service.load_cursos(file) if file else (False, "Debe subir un archivo.")
+    flash(message, 'success' if success else 'danger')
+    return redirect('/')
+
+@json_upload_bp.route('/json-upload/instancias', methods=['POST'])
+def upload_instancias():
+    message = None
+    success = False
+
+    file = request.files.get('json_file')
+    if not file:
+        message = "Debe subir un archivo."
+    else:
+        success, message = service.load_instancias(file)
+
+    flash(message, 'success' if success else 'danger')
+    return redirect('/')
+
+@json_upload_bp.route('/json-upload/inscripciones', methods=['POST'])
+def upload_inscripciones():
+    file = request.files.get('json_file')
+    if not file:
+        flash("Debe subir un archivo.", "danger")
+        return redirect(url_for('home'))
+
+    success, message = service.load_enrollments(file)
+    flash(message, 'success' if success else 'danger')
+    return redirect('/')
+
+@json_upload_bp.route('/json-upload/salas', methods=['POST'])
+def upload_classrooms():
+    success = False
+    message = None
+
+    file = request.files.get('json_file')
+    if not file:
+        message = "Debe subir un archivo."
+    else:
+        success, message = service.load_classrooms(file)
+
+    flash(message, 'success' if success else 'danger')
+    return redirect('/')

@@ -35,48 +35,208 @@
 <link rel="stylesheet" href="https://unpkg.com/intro.js/minified/introjs.min.css" />
 
 <script>
-    window.addEventListener('DOMContentLoaded', () => {
-        const startBtn = document.getElementById('start-json-tour');
-        if (!startBtn) return;
+window.addEventListener('DOMContentLoaded', () => {
+    const startBtn = document.getElementById('start-json-tour');
+    if (!startBtn) return;
 
-        startBtn.addEventListener('click', () => {
-            console.log("Botón presionado");
+    function handleModalFormAndContinue(modalId, nextStepFn) {
+        const form = document.querySelector(`#${modalId} form`);
+        const modalElement = document.getElementById(modalId);
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
 
-            const intro = introJs();
+        // Cierre manual del modal también continúa el tour
+        modalElement.addEventListener('hidden.bs.modal', () => {
+            setTimeout(nextStepFn, 300);
+        }, { once: true });
 
-            intro.setOptions({
-                steps: [
-                    {
-                        title: '🚀 Bienvenido al sistema de carga JSON',
-                        intro: 'Este tour te guiará paso a paso para subir los archivos en el orden correcto sin romper la aplicación.'
-                    },
-                    {
-                        title: '📄 Paso 1: Subir Alumnos',
-                        intro: 'Debes comenzar subiendo <code>1-alumnos.json</code>, ya que contiene los datos base de los estudiantes. <strong>Sin este paso, las inscripciones y notas no podrán vincularse correctamente.</strong>',
-                    },
-                    {
-                        element: '#start-json-tour',
-                        intro: 'Haz clic en "Finalizar" para cargar el archivo.',
-                        position: 'bottom'
-                    }
-                ],
-                showProgress: true,
-                showBullets: false,
-                overlayOpacity: 0.6,
-                nextLabel: 'Siguiente',
-                prevLabel: 'Anterior',
-                skipLabel: 'Salir',
-                doneLabel: 'Subir archivo'
+        if (!form) return;
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const action = form.getAttribute('action') || window.location.pathname;
+
+            fetch(action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.redirected) throw new Error('Error en la carga del archivo');
+                bootstrap.Modal.getInstance(modalElement).hide();
+            })
+            .catch(err => {
+                alert("Error al subir archivo: " + err.message);
             });
+        }, { once: true });
+    }
 
-            intro.oncomplete(() => {
-                const modal = new bootstrap.Modal(document.getElementById('modalUploadAlumnos'));
-                modal.show();
-            });
-
-            intro.start();
+    function showFinalFlashes() {
+        document.querySelectorAll('.alert').forEach(alert => {
+            alert.classList.add('show');
+            alert.style.display = 'block';
         });
+    }
+
+    startBtn.addEventListener('click', () => {
+        const intro = introJs();
+
+        intro.setOptions({
+            steps: [
+                {
+                    title: '🚀 Bienvenido al sistema de carga JSON',
+                    intro: 'Este tour te guiará paso a paso para subir los archivos en el orden correcto sin romper la aplicación.'
+                },
+                {
+                    title: '📄 Paso 1: Subir Alumnos',
+                    intro: 'Sube <code>1-alumnos.json</code> con los datos base de los estudiantes.'
+                },
+                {
+                    element: '#start-json-tour',
+                    intro: 'Haz clic en "Subir Alumnos". Puedes omitirlo cerrando el siguiente modal.',
+                    position: 'bottom'
+                }
+            ],
+            showProgress: true,
+            doneLabel: 'Subir alumnos'
+        });
+
+        intro.oncomplete(() => {
+            handleModalFormAndContinue('modalUploadAlumnos', () => {
+                const pasoProfesores = introJs();
+                pasoProfesores.setOptions({
+                    steps: [
+                        {
+                            title: '👨‍🏫 Paso 2: Subir Profesores',
+                            intro: 'Sube <code>2-profesores.json</code> con los datos del cuerpo docente.'
+                        },
+                        {
+                            element: '#start-json-tour',
+                            intro: 'Haz clic en "Subir Profesores". Puedes omitirlo cerrando el siguiente modal.',
+                            position: 'bottom'
+                        }
+                    ],
+                    doneLabel: 'Subir profesores'
+                });
+
+                pasoProfesores.oncomplete(() => {
+                    handleModalFormAndContinue('modalUploadProfesores', () => {
+                        const pasoCursos = introJs();
+                        pasoCursos.setOptions({
+                            steps: [
+                                {
+                                    title: '📘 Paso 3: Subir Cursos',
+                                    intro: 'Sube <code>3-cursos.json</code> con información de cursos y prerrequisitos.'
+                                },
+                                {
+                                    element: '#start-json-tour',
+                                    intro: 'Haz clic en "Subir Cursos". Puedes omitirlo cerrando el siguiente modal.',
+                                    position: 'bottom'
+                                }
+                            ],
+                            doneLabel: 'Subir cursos'
+                        });
+
+                        pasoCursos.oncomplete(() => {
+                            handleModalFormAndContinue('modalUploadCursos', () => {
+                                const pasoInstancias = introJs();
+                                pasoInstancias.setOptions({
+                                    steps: [
+                                        {
+                                            title: '📅 Paso 4: Subir Instancias',
+                                            intro: 'Sube <code>4-instancias_cursos.json</code> con año y semestre.'
+                                        },
+                                        {
+                                            element: '#start-json-tour',
+                                            intro: 'Haz clic en "Subir Instancias". Puedes omitirlo cerrando el siguiente modal.',
+                                            position: 'bottom'
+                                        }
+                                    ],
+                                    doneLabel: 'Subir instancias'
+                                });
+
+                                pasoInstancias.oncomplete(() => {
+                                    handleModalFormAndContinue('modalUploadInstancias', () => {
+                                        const pasoInscripciones = introJs();
+                                        pasoInscripciones.setOptions({
+                                            steps: [
+                                                {
+                                                    title: '👥 Paso 5: Inscripciones',
+                                                    intro: 'Sube <code>6-alumnos_por_seccion.json</code> para inscribir alumnos.'
+                                                },
+                                                {
+                                                    element: '#start-json-tour',
+                                                    intro: 'Haz clic en "Subir Inscripciones". Puedes omitirlo cerrando el siguiente modal.',
+                                                    position: 'bottom'
+                                                }
+                                            ],
+                                            doneLabel: 'Subir inscripciones'
+                                        });
+
+                                        pasoInscripciones.oncomplete(() => {
+                                            handleModalFormAndContinue('modalUploadInscripciones', () => {
+                                                const pasoSalas = introJs();
+                                                pasoSalas.setOptions({
+                                                    steps: [
+                                                        {
+                                                            title: '🏫 Paso 6: Subir Salas de Clase',
+                                                            intro: 'Sube <code>8-salas_de_clases.json</code> con información de salas.'
+                                                        },
+                                                        {
+                                                            element: '#start-json-tour',
+                                                            intro: 'Haz clic en "Subir Salas". Puedes omitirlo cerrando el siguiente modal.',
+                                                            position: 'bottom'
+                                                        }
+                                                    ],
+                                                    doneLabel: 'Subir salas'
+                                                });
+
+                                                pasoSalas.oncomplete(() => {
+                                                    handleModalFormAndContinue('modalUploadSalas', () => {
+                                                        const finalStep = introJs();
+                                                        finalStep.setOptions({
+                                                            steps: [
+                                                                {
+                                                                    title: '🎉 ¡Tour finalizado!',
+                                                                    intro: 'Has completado el tour. Se omitieron las secciones y notas por tiempo, pero puedes cargarlas manualmente.'
+                                                                }
+                                                            ],
+                                                            doneLabel: 'Finalizar'
+                                                        });
+
+                                                        finalStep.oncomplete(showFinalFlashes);
+                                                        finalStep.start();
+                                                    });
+                                                });
+
+                                                pasoSalas.start();
+                                            });
+                                        });
+
+                                        pasoInscripciones.start();
+                                    });
+                                });
+
+                                pasoInstancias.start();
+                            });
+                        });
+
+                        pasoCursos.start();
+                    });
+                });
+
+                pasoProfesores.start();
+            });
+        });
+
+        intro.start();
     });
+});
 </script>
 {% include 'json_upload/modal_alumnos.html' %}
+{% include 'json_upload/modal_profesores.html' %}
+{% include 'json_upload/modal_cursos.html' %}
+{% include 'json_upload/modal_instancias.html' %}
+{% include 'json_upload/modal_inscripciones.html' %}
+{% include 'json_upload/modal_salas.html' %}
 {% endblock %}

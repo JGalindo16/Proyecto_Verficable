@@ -1,0 +1,53 @@
+<div class="modal fade" id="modalUploadSalas" tabindex="-1" aria-labelledby="modalUploadSalasLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-secondary">
+        <div class="modal-header bg-secondary text-white">
+          <h5 class="modal-title" id="modalUploadSalasLabel">🏫 Subir Salas de Clase</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+  
+        <div class="modal-body">
+          <p>
+            Sube el archivo <code>8-salas_de_clases.json</code> con la información de las salas disponibles en el sistema. <br>
+            El archivo debe tener la siguiente estructura:
+          </p>
+  
+          <pre><code>{
+    "salas": [
+      {
+        "nombre": "Sala 101",
+        "capacidad": 40
+      },
+      {
+        "nombre": "Laboratorio A",
+        "capacidad": 25
+      }
+    ]
+  }</code></pre>
+  
+          <div class="alert alert-info">
+            <strong>Validaciones aplicadas:</strong>
+            <ul class="mb-0">
+              <li>✔️ <code>nombre</code> debe ser un string no vacío.</li>
+              <li>✔️ <code>capacidad</code> debe ser un entero mayor a 0.</li>
+              <li>❌ No se permiten nombres duplicados.</li>
+            </ul>
+          </div>
+  
+          {% if message %}
+            <div class="alert alert-{{ 'success' if success else 'danger' }}">{{ message }}</div>
+          {% endif %}
+  
+          <form method="POST" action="/json-upload/salas" enctype="multipart/form-data">
+            <div class="mb-3">
+              <label for="jsonFile" class="form-label">Archivo JSON</label>
+              <input class="form-control" type="file" name="json_file" id="jsonFile" accept=".json" required>
+            </div>
+            <div class="text-end">
+              <button type="submit" class="btn btn-primary">Subir archivo</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>

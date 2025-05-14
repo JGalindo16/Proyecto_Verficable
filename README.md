@@ -5,6 +5,8 @@
 
 > 📌 **Requisito:** Asegúrate de tener Docker corriendo antes de continuar. Los pasos para esto están más abajo.
 
+> 📌 **Requisito:** Porfavor ocupen google chrome ya que hicimos un tour guiado para que puedan cargar los archivos JSON en el orden correcto. Esto no funciona en safari.
+
 ### 1. Cargar las tablas
 
 Desde la raíz del proyecto, ejecutá el siguiente comando para importar el esquema SQL:

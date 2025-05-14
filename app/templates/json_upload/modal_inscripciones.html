@@ -1,0 +1,51 @@
+<div class="modal fade" id="modalUploadInscripciones" tabindex="-1" aria-labelledby="modalUploadInscripcionesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-info">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title" id="modalUploadInscripcionesLabel">📥 Subir Inscripciones de Alumnos</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+  
+        <div class="modal-body">
+          <p>
+            Sube el archivo <code>6-alumnos_por_seccion.json</code> con la información de inscripción de estudiantes a secciones. Asegúrate de que el archivo tenga una estructura como:
+          </p>
+  
+  <pre><code>{
+    "inscripciones": [
+      {
+        "student_id": 1,
+        "section_id": 101
+      }
+    ]
+  }</code></pre>
+  
+          <div class="alert alert-warning">
+            <strong>Validaciones que se aplicarán:</strong>
+            <ul class="mb-0">
+              <li>✔️ <code>student_id</code> debe ser un número entero y existir en la tabla <code>students</code>.</li>
+              <li>✔️ <code>section_id</code> debe ser un número entero y existir en la tabla <code>sections</code>.</li>
+              <li>❌ No se permitirán inscripciones duplicadas.</li>
+              <li>❌ No se permitirá inscripción si alguno de los IDs referenciados no existe.</li>
+            </ul>
+          </div>
+  
+          {% if message %}
+            <div class="alert alert-{{ 'success' if success else 'danger' }} mt-3">
+              {{ message }}
+            </div>
+          {% endif %}
+  
+          <form method="POST" action="/json-upload/inscripciones" enctype="multipart/form-data">
+            <div class="mb-3">
+              <label for="jsonFileInscripciones" class="form-label">Archivo JSON</label>
+              <input class="form-control" type="file" name="json_file" id="jsonFileInscripciones" accept=".json" required>
+            </div>
+            <div class="text-end">
+              <button type="submit" class="btn btn-info text-white">Subir archivo</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
