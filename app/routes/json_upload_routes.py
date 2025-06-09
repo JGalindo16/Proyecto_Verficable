@@ -1,82 +1,84 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, request, jsonify
 from app.services.json_upload_service import JsonUploadService
-from flask import flash, redirect, url_for
 
 json_upload_bp = Blueprint('json_upload', __name__)
 service = JsonUploadService()
 
-@json_upload_bp.route('/json-upload/alumnos', methods=['GET', 'POST'])
+@json_upload_bp.route('/json-upload/alumnos', methods=['POST'])
 def upload_alumnos():
-    message = None
-    success = False
+    file = request.files.get('json_file')
+    if not file:
+        return jsonify(success=False, message="Debe subir un archivo."), 400
 
-    if request.method == 'POST':
-        file = request.files.get('json_file')
-        if not file:
-            message = "Debe subir un archivo."
-        else:
-            success, message = service.load_alumnos(file)
+    success, message = service.load_alumnos(file)
+    return jsonify(success=success, message=message)
 
-    
-    flash(message, 'success' if success else 'danger')
-    return redirect('/')
 
 @json_upload_bp.route('/json-upload/profesores', methods=['POST'])
 def upload_profesores():
-    message = None
-    success = False
-
     file = request.files.get('json_file')
     if not file:
-        message = "Debe subir un archivo."
-    else:
-        success, message = service.load_profesores(file)
+        return jsonify(success=False, message="Debe subir un archivo."), 400
 
-    flash(message, 'success' if success else 'danger')
-    return redirect('/')
+    success, message = service.load_profesores(file)
+    return jsonify(success=success, message=message)
+
 
 @json_upload_bp.route('/json-upload/cursos', methods=['POST'])
 def upload_cursos():
     file = request.files.get('json_file')
-    success, message = service.load_cursos(file) if file else (False, "Debe subir un archivo.")
-    flash(message, 'success' if success else 'danger')
-    return redirect('/')
+    if not file:
+        return jsonify(success=False, message="Debe subir un archivo."), 400
+
+    success, message = service.load_cursos(file)
+    return jsonify(success=success, message=message)
+
 
 @json_upload_bp.route('/json-upload/instancias', methods=['POST'])
 def upload_instancias():
-    message = None
-    success = False
-
     file = request.files.get('json_file')
     if not file:
-        message = "Debe subir un archivo."
-    else:
-        success, message = service.load_instancias(file)
+        return jsonify(success=False, message="Debe subir un archivo."), 400
 
-    flash(message, 'success' if success else 'danger')
-    return redirect('/')
+    success, message = service.load_instancias(file)
+    return jsonify(success=success, message=message)
+
 
 @json_upload_bp.route('/json-upload/inscripciones', methods=['POST'])
 def upload_inscripciones():
     file = request.files.get('json_file')
     if not file:
-        flash("Debe subir un archivo.", "danger")
-        return redirect(url_for('home'))
+        return jsonify(success=False, message="Debe subir un archivo."), 400
 
     success, message = service.load_enrollments(file)
-    flash(message, 'success' if success else 'danger')
-    return redirect('/')
+    return jsonify(success=success, message=message)
+
 
 @json_upload_bp.route('/json-upload/salas', methods=['POST'])
 def upload_classrooms():
-    success = False
-    message = None
-
     file = request.files.get('json_file')
     if not file:
-        message = "Debe subir un archivo."
-    else:
-        success, message = service.load_classrooms(file)
+        return jsonify(success=False, message="Debe subir un archivo."), 400
 
-    flash(message, 'success' if success else 'danger')
-    return redirect('/')
+    success, message = service.load_classrooms(file)
+    return jsonify(success=success, message=message)
+
+
+@json_upload_bp.route('/json-upload/instancias-secciones', methods=['POST'])
+def upload_instancias_y_secciones():
+    file = request.files.get('json_file')
+    if not file:
+        return jsonify(success=False, message="Debe subir un archivo."), 400
+
+    success, message = service.load_instancias_con_secciones(file)
+    return jsonify(success=success, message=message)
+
+@json_upload_bp.route('/json-upload/notas', methods=['POST'])
+def upload_notas():
+    file = request.files.get('json_file')
+    if not file:
+        return jsonify(success=False, message="Debe subir un archivo."), 400
+
+    success, message = service.load_notas(file)
+    status_code = 200 if success else 400
+    return jsonify(success=success, message=message), status_code

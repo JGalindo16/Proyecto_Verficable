@@ -1,0 +1,90 @@
+<div class="modal fade" id="modalUploadInstanciasSecciones" tabindex="-1" aria-labelledby="modalUploadInstanciasSeccionesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-secondary">
+      <div class="modal-header bg-secondary text-white">
+        <h5 class="modal-title" id="modalUploadInstanciasSeccionesLabel">🧩 Subir Secciones desde JSON</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p>
+          Sube el archivo <code>5-instancia_cursos_con_secciones.json</code> que contiene las secciones vinculadas a instancias de curso. Cada sección puede tener evaluaciones configuradas con tópicos y sus respectivas instancias.
+        </p>
+
+        <pre><code>{
+  "secciones": [
+    {
+      "instancia_curso": 1,
+      "id": 1,
+      "profesor_id": 3,
+      "evaluacion": {
+        "tipo": "peso",
+        "combinacion_topicos": [
+          { "id": 8, "nombre": "Pruebas", "valor": 44.5 },
+          { "id": 9, "nombre": "Lecturas", "valor": 34.2 }
+        ],
+        "topicos": {
+          "topicos": {
+          "8": {
+              "id": 8,
+              "cantidad": 3,
+              "tipo": "porcentaje",
+              "valores": [
+                  25.0,
+                  33.3,
+                  41.7
+              ],
+              "obligatorias": [
+                  true,
+                  true,
+                  false
+              ]
+          },
+          "9": {
+              "id": 9,
+              "cantidad": 4,
+              "tipo": "porcentaje",
+              "valores": [
+                  36.8,
+                  36.8,
+                  5.3,
+                  21.1
+              ],
+              "obligatorias": [
+                  true,
+                  true,
+                  false,
+                  false
+              ]
+          }
+        }
+      }
+    }
+  ]
+}</code></pre>
+
+        <div class="alert alert-secondary">
+          <strong>Validaciones aplicadas:</strong>
+          <ul class="mb-0">
+            <li>✔️ <code>instancia_curso</code>, <code>id</code> y <code>profesor_id</code> son obligatorios y deben ser enteros.</li>
+            <li>✔️ Si se incluye <code>evaluacion</code>, debe tener un <code>tipo</code> válido: <code>"peso"</code> o <code>"porcentaje"</code>.</li>
+            <li>✔️ La suma de los valores de tópicos tipo <code>"peso"</code> se normaliza automáticamente para calcular porcentajes relativos.</li>
+            <li>✔️ Los porcentajes y valores se convierten a decimales (ej. 45% → 0.45) con 2 decimales, redondeados para sumar 1.00.</li>
+            <li>❌ Se valida que las instancias de curso y profesores existan en la base de datos.</li>
+            <li>❌ Se rechaza la sección si faltan tópicos o si las cantidades no coinciden con los arreglos de valores/obligatorias.</li>
+          </ul>
+        </div>
+
+        <form action="/json-upload/instancias-secciones" method="POST" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label for="jsonFileInstanciasSecciones" class="form-label">Archivo JSON</label>
+            <input class="form-control" type="file" name="json_file" id="jsonFileInstanciasSecciones" accept=".json" required>
+          </div>
+          <div class="text-end">
+            <button type="submit" class="btn btn-secondary">Subir archivo</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

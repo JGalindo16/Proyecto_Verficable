@@ -396,3 +396,194 @@ class JsonUploadService:
         except Exception as e:
             print("Error al cargar salas:", e)
             return False, "Error interno al procesar el archivo."
+
+    def load_instancias_con_secciones(self, file_storage):
+        try:
+            data = json.load(file_storage)
+
+            if "secciones" not in data or not isinstance(data["secciones"], list):
+                return False, "El JSON debe contener una lista bajo la clave 'secciones'."
+
+            secciones = data["secciones"]
+            insertadas = 0
+            errores = []
+
+            def round_with_correction(values):
+                rounded = [round(v, 2) for v in values]
+                diff = round(1.0 - sum(rounded), 2)
+                if rounded:
+                    rounded[-1] += diff
+                return rounded
+
+            for i, seccion in enumerate(secciones, start=1):
+                try:
+                    instance_id = int(seccion.get("instancia_curso"))
+                    numero = int(seccion.get("id"))
+                    profesor_id = int(seccion.get("profesor_id"))
+
+                    # Verificaciones
+                    self.cursor.execute("SELECT 1 FROM course_instances WHERE instance_id = %s", (instance_id,))
+                    if not self.cursor.fetchone():
+                        raise ValueError(f"Instancia con ID {instance_id} no existe")
+
+                    self.cursor.execute("SELECT 1 FROM professors WHERE professor_id = %s", (profesor_id,))
+                    if not self.cursor.fetchone():
+                        raise ValueError(f"Profesor con ID {profesor_id} no existe")
+
+                    self.cursor.execute("""
+                        INSERT INTO sections (instance_id, number, professor_id)
+                        VALUES (%s, %s, %s)
+                    """, (instance_id, numero, profesor_id))
+                    section_id = self.cursor.lastrowid
+
+                    evaluacion = seccion.get("evaluacion")
+                    if evaluacion:
+                        tipo_eval = evaluacion.get("tipo")
+                        if tipo_eval not in ("peso", "porcentaje"):
+                            raise ValueError(f"Tipo de evaluación inválido: {tipo_eval}")
+
+                        combinacion = evaluacion.get("combinacion_topicos", [])
+                        topicos = evaluacion.get("topicos", {})
+
+                        valores_topico = [float(t["valor"]) for t in combinacion]
+                        if tipo_eval == "peso":
+                            total = sum(valores_topico)
+                            pesos_relativos = round_with_correction([v / total for v in valores_topico])
+                        else:
+                            pesos_relativos = round_with_correction([v / 100 for v in valores_topico])
+
+                        for idx, topico_meta in enumerate(combinacion):
+                            topico_id = str(topico_meta.get("id"))
+                            nombre = topico_meta.get("nombre")
+                            peso_normalizado = pesos_relativos[idx]
+
+                            if topico_id not in topicos:
+                                raise ValueError(f"No hay descripción para el tópico con id {topico_id}")
+
+                            self.cursor.execute("""
+                                INSERT INTO evaluations (section_id, type, weight, optional)
+                                VALUES (%s, %s, %s, %s)
+                            """, (section_id, nombre, peso_normalizado, False))
+                            evaluation_id = self.cursor.lastrowid
+
+                            topico = topicos[topico_id]
+                            cantidad = topico.get("cantidad")
+                            valores = topico.get("valores", [])
+                            obligatorias = topico.get("obligatorias", [])
+
+                            if cantidad != len(valores) or cantidad != len(obligatorias):
+                                raise ValueError(f"Tópico {topico_id} tiene cantidades inconsistentes.")
+
+                            if topico["tipo"] == "peso":
+                                total = sum(valores)
+                                instancias_pesos = round_with_correction([v / total for v in valores])
+                            else:
+                                instancias_pesos = round_with_correction([v / 100 for v in valores])
+
+                            for j in range(cantidad):
+                                self.cursor.execute("""
+                                    INSERT INTO evaluation_instances (evaluation_id, name, specific_weight, mandatory)
+                                    VALUES (%s, %s, %s, %s)
+                                """, (
+                                    evaluation_id,
+                                    f"{nombre} Instancia {j + 1}",
+                                    instancias_pesos[j],
+                                    obligatorias[j]
+                                ))
+
+                    insertadas += 1
+
+                except Exception as e:
+                    errores.append(f"Sección #{i}: {str(e)}")
+
+            self.db.commit()
+
+            if errores:
+                return False, f"{insertadas} secciones cargadas con éxito. {len(errores)} errores.\n" + "\n".join(errores)
+            return True, f"{insertadas} secciones cargadas exitosamente."
+
+        except json.JSONDecodeError:
+            return False, "El archivo no es un JSON válido."
+        except Exception as e:
+            print("Error en carga de secciones:", e)
+            return False, "Error interno al procesar el archivo."
+
+    def load_notas(self, file_storage):
+        try:
+            data = json.load(file_storage)
+
+            if "notas" not in data or not isinstance(data["notas"], list):
+                return False, "El JSON debe contener una lista bajo la clave 'notas'."
+
+            notas = data["notas"]
+            insertadas = 0
+            errores = []
+
+            for i, nota_data in enumerate(notas, start=1):
+                try:
+                    required_fields = ["alumno_id", "topico_id", "instancia", "nota"]
+                    for field in required_fields:
+                        if nota_data.get(field) is None:
+                            raise ValueError(f"Campo '{field}' faltante o nulo")
+
+                    alumno_id = int(nota_data["alumno_id"])
+                    topico_id = int(nota_data["topico_id"])
+                    instancia = int(nota_data["instancia"])
+                    nota = float(nota_data["nota"])
+
+                    if not (1.0 <= nota <= 7.0):
+                        raise ValueError("La nota debe estar entre 1.0 y 7.0.")
+
+                    # Verificar que el alumno exista
+                    self.cursor.execute("SELECT 1 FROM students WHERE student_id = %s", (alumno_id,))
+                    if not self.cursor.fetchone():
+                        raise ValueError(f"Alumno con ID {alumno_id} no existe")
+
+                    # Verificar que exista la instancia de evaluación
+                    self.cursor.execute("""
+                        SELECT ei.instance_eval_id, e.section_id
+                        FROM evaluation_instances ei
+                        JOIN evaluations e ON ei.evaluation_id = e.evaluation_id
+                        WHERE e.evaluation_id = %s AND ei.name LIKE %s
+                    """, (topico_id, f"%Instancia {instancia}"))
+                    result = self.cursor.fetchone()
+                    if not result:
+                        raise ValueError(f"No existe la instancia {instancia} para el tópico {topico_id}")
+
+                    instance_eval_id = result["instance_eval_id"]
+                    section_id = result["section_id"]
+
+                    # Verificar si el alumno está inscrito en la sección correspondiente
+                    self.cursor.execute("""
+                        SELECT enrollment_id FROM enrollments
+                        WHERE student_id = %s AND section_id = %s
+                    """, (alumno_id, section_id))
+                    result = self.cursor.fetchone()
+                    if not result:
+                        raise ValueError(f"El alumno {alumno_id} no está inscrito en la sección {section_id}")
+                    
+                    enrollment_id = result["enrollment_id"]
+
+                    # Insertar la nota
+                    self.cursor.execute("""
+                        INSERT INTO grades (enrollment_id, instance_eval_id, score)
+                        VALUES (%s, %s, %s)
+                    """, (enrollment_id, instance_eval_id, nota))
+
+                    insertadas += 1
+
+                except Exception as e:
+                    errores.append(f"Nota #{i}: {str(e)}")
+
+            self.db.commit()
+
+            if errores:
+                mensaje = f"{insertadas} notas cargadas con éxito. {len(errores)} errores.\n" + "\n".join(errores)
+                return False, mensaje
+
+            return True, f"{insertadas} notas cargadas exitosamente."
+
+        except json.JSONDecodeError:
+            return False, "El archivo no es un JSON válido."
+        except Exception as e:
+            return False, "Error interno al procesar el archivo."

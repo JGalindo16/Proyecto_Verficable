@@ -1,0 +1,46 @@
+<div class="modal fade" id="modalUploadNotas" tabindex="-1" aria-labelledby="modalUploadNotasLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-info">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title" id="modalUploadNotasLabel">📝 Subir Notas de Evaluaciones</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+  
+        <div class="modal-body">
+          <p>
+            Sube el archivo <code>7-notas_alumnos.json</code> que contiene las notas asignadas a cada alumno por evaluación.
+            Debe tener la siguiente estructura:
+          </p>
+          <pre><code>{
+    "notas": [
+      {
+        "student_id": 15,
+        "instance_eval_id": 2304,
+        "grade": 6.2
+      }
+    ]
+  }</code></pre>
+  
+          <div class="alert alert-info">
+            <strong>Validaciones aplicadas:</strong>
+            <ul class="mb-0">
+              <li>✔️ <code>student_id</code>, <code>instance_eval_id</code> y <code>grade</code> son obligatorios.</li>
+              <li>✔️ <code>grade</code> debe ser un número entre 1.0 y 7.0.</li>
+              <li>❌ Se verifica que el <code>student_id</code> y <code>instance_eval_id</code> existan en la base de datos.</li>
+              <li>ℹ️ Se actualiza la nota si ya existe, o se inserta si no existe previamente.</li>
+            </ul>
+          </div>
+  
+          <form action="/json-upload/notas" method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+              <label for="jsonFileNotas" class="form-label">Archivo JSON</label>
+              <input class="form-control" type="file" name="json_file" id="jsonFileNotas" accept=".json" required>
+            </div>
+            <div class="text-end">
+              <button type="submit" class="btn btn-info">Subir archivo</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
