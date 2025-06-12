@@ -128,3 +128,17 @@ CREATE TABLE classrooms (
     name VARCHAR(255) NOT NULL,
     capacity INT NOT NULL
 );
+
+CREATE TABLE schedules (
+    schedule_id INT AUTO_INCREMENT PRIMARY KEY,
+    section_id INT NOT NULL,
+    classroom_id INT NOT NULL,
+    day_of_week ENUM('Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes') NOT NULL,
+    start_module INT NOT NULL,   -- módulo de inicio (ej: 1 = 9:00)
+    duration INT NOT NULL,       -- cuántos módulos seguidos ocupa
+
+    FOREIGN KEY (section_id) REFERENCES sections(section_id) ON DELETE CASCADE,
+    FOREIGN KEY (classroom_id) REFERENCES classrooms(classroom_id) ON DELETE CASCADE,
+
+    CONSTRAINT uq_section_schedule UNIQUE (section_id, day_of_week)  -- una sección no se repite en el mismo día
+);
