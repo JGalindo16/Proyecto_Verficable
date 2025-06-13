@@ -48,6 +48,7 @@ CREATE TABLE sections (
     instance_id INT NOT NULL,
     number INT NOT NULL,
     professor_id INT NOT NULL,
+    closed BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (instance_id) REFERENCES course_instances(instance_id) ON DELETE CASCADE,
     FOREIGN KEY (professor_id) REFERENCES professors(professor_id) ON DELETE CASCADE
 );
@@ -141,4 +142,16 @@ CREATE TABLE schedules (
     FOREIGN KEY (classroom_id) REFERENCES classrooms(classroom_id) ON DELETE CASCADE,
 
     CONSTRAINT uq_section_schedule UNIQUE (section_id, day_of_week)  -- una sección no se repite en el mismo día
+);
+
+-- =============================
+-- Tabla: final_grades
+-- =============================
+CREATE TABLE final_grades (
+    section_id INT NOT NULL,
+    student_id INT NOT NULL,
+    final_score FLOAT NOT NULL CHECK (final_score BETWEEN 1.0 AND 7.0),
+    PRIMARY KEY (section_id, student_id),
+    FOREIGN KEY (section_id) REFERENCES sections(section_id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
 );

@@ -114,6 +114,7 @@ class CourseInstanceService:
                 s.section_id AS id,
                 s.number,
                 s.professor_id,
+                s.closed,
                 p.name AS professor_name,
                 CONCAT('Sección ', s.number) AS name
             FROM sections s
