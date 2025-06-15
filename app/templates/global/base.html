@@ -9,12 +9,15 @@
         body {
             min-height: 100vh;
             display: flex;
+            height: 100vh;
+            overflow: hidden; /* Evita scroll en body */
         }
         .sidebar {
             width: 220px;
             background: #212529;
             color: #fff;
             min-height: 100vh;
+            overflow-y: auto;
         }
         .sidebar a {
             color: #fff;
@@ -29,6 +32,8 @@
             flex: 1;
             padding: 2rem;
             background: #f8f9fa;
+            height: 100vh;
+            overflow-y: auto; /* El scroll solo ocurre aquí */
         }
     </style>
     {% block head %}{% endblock %}
