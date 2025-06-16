@@ -7,6 +7,8 @@ from app.routes.evaluation_routes import evaluation_bp
 from app.routes.json_upload_routes import json_upload_bp
 from app.routes.generar_horario_routes import generar_horario_bp
 from app.routes.cerrar_seccion_y_reportes_routes import cerrar_reportar_bp
+from app.routes.section_routes import section_bp
+from app.routes.grade_routes import grade_bp
 from app.http_errors import HTTP_NOT_FOUND
 
 def create_app():
@@ -17,6 +19,8 @@ def create_app():
     app.register_blueprint(professor_bp)
     app.register_blueprint(student_bp)
     app.register_blueprint(course_instance_bp)
+    app.register_blueprint(section_bp)
+    app.register_blueprint(grade_bp)
     app.register_blueprint(evaluation_bp)
     app.register_blueprint(json_upload_bp)
     app.register_blueprint(generar_horario_bp)
