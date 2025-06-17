@@ -17,4 +17,4 @@ def generar_horario():
         )
     else:
         flash(f"Error al generar horario: {response}", "danger")
-        return render_template('base/home.html')
+        return render_template('global/home.html')
