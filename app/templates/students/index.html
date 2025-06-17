@@ -43,4 +43,13 @@
     </tbody>
 </table>
 
+<script>
+function confirmDeleteAll() {
+    if (confirm('¿Estás seguro de que quieres eliminar TODOS los estudiantes?')) {
+        return confirm('Esta acción NO se puede deshacer. ¿Confirmas definitivamente que quieres eliminar todos los estudiantes?');
+    }
+    return false;
+}
+</script>
+
 {% endblock %}
