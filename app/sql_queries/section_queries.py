@@ -110,3 +110,9 @@ CHECK_STUDENT_ALREADY_ENROLLED_WITH_NAME = """
       AND sec.section_id != %s
     LIMIT 1
 """
+
+CHECK_DUPLICATE_SECTION_NUMBER = """
+    SELECT COUNT(*) AS count
+    FROM sections
+    WHERE section_id != %s AND number = %s
+"""

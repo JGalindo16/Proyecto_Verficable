@@ -93,19 +93,44 @@ class SectionService:
 
     def update_section(self, section_id: int, section_number: int, professor_id: int):
         try:
-            # Verificar si ya existe otra sección con ese número (excluyendo esta)
-            self.cursor.execute(CHECK_DUPLICATE_SECTION_NUMBER, (section_id, section_number))
-            if self.cursor.fetchone()["count"] > 0:
-                return {"success": False, "message": "Ya existe otra sección con ese número."}
+            self.cursor.execute(GET_INSTANCE_ID_FROM_SECTION, (section_id,))
+            result = self.cursor.fetchone()
+            if not result:
+                return {"success": False, "message": "Sección no encontrada."}
+            instance_id = result["instance_id"]
+            
+            self.cursor.execute(CHECK_DUPLICATE_SECTION_IN_INSTANCE, (instance_id, section_number))
+            existing_section = self.cursor.fetchone()
+            if existing_section and existing_section["count"] > 0:
+                self.cursor.execute("SELECT section_id FROM sections WHERE instance_id = %s AND number = %s", (instance_id, section_number))
+                existing_section_data = self.cursor.fetchone()
+                if existing_section_data and existing_section_data["section_id"] != section_id:
+                    return {"success": False, "message": "Ya existe otra sección con ese número en esta instancia."}
 
             self.cursor.execute(UPDATE_SECTION, (section_number, professor_id, section_id))
             self.db.commit()
             return {"success": True, "message": "Sección actualizada exitosamente."}
         except Exception as e:
-            return {"success": False, "message": "Error al actualizar sección."}
+            self.db.rollback()
+            return {"success": False, "message": f"Error al actualizar sección: {str(e)}"}
 
     def update_section_students(self, section_id: int, student_ids: list):
         try:
+            self.cursor.execute(GET_INSTANCE_ID_FROM_SECTION, (section_id,))
+            result = self.cursor.fetchone()
+            if not result:
+                return {"success": False, "message": "Sección no encontrada."}
+            instance_id = result["instance_id"]
+
+            for student_id in student_ids:
+                self.cursor.execute(CHECK_STUDENT_ALREADY_ENROLLED_WITH_NAME, (student_id, instance_id, section_id))
+                result_check = self.cursor.fetchone()
+                if result_check:
+                    return {
+                        "success": False,
+                        "message": f"El estudiante \"{result_check['name']}\" ya está inscrito en otra sección de esta instancia."
+                    }
+
             self.cursor.execute(DELETE_STUDENTS_FROM_SECTION, (section_id,))
             if student_ids:
                 values = [(section_id, student_id) for student_id in student_ids]
@@ -113,7 +138,8 @@ class SectionService:
             self.db.commit()
             return {"success": True, "message": "Estudiantes actualizados correctamente."}
         except Exception as e:
-            return {"success": False, "message": "Error al actualizar estudiantes."}
+            self.db.rollback()
+            return {"success": False, "message": f"Error al actualizar estudiantes: {str(e)}"}
 
     def get_enrolled_student_ids(self, section_id: int):
         self.cursor.execute(GET_ENROLLED_STUDENT_IDS, (section_id,))
@@ -127,10 +153,6 @@ class SectionService:
     def get_all_students(self):
         self.cursor.execute(GET_ALL_STUDENTS)
         return self.cursor.fetchall()
-
-    def check_student_enrollment_in_instance(self, student_id: int, instance_id: int):
-        self.cursor.execute(CHECK_STUDENT_ALREADY_ENROLLED_WITH_NAME, (student_id, instance_id, 0))
-        return self.cursor.fetchone()
     
     def check_student_enrollment_in_instance(self, student_id: int, instance_id: int, current_section_id: int = 0):
         self.cursor.execute(CHECK_STUDENT_ALREADY_ENROLLED_WITH_NAME, (student_id, instance_id, current_section_id))
