@@ -50,7 +50,7 @@
                     <div class="mb-3">
                         <label for="specific_weight">Peso (%)</label>
                         <input type="number" name="specific_weight" class="form-control weight-input" step="0.1" min="0"
-                               max="{{ 100 - total_weight + (inst.specific_weight * 100) }}"
+                               max="{{ 100.1 - total_weight + (inst.specific_weight * 100) }}"
                                value="{{ inst.specific_weight * 100 }}"
                                data-original="{{ inst.specific_weight * 100 }}"
                                required>
@@ -100,7 +100,7 @@
             <div class="mb-3">
                 <label for="specific_weight">Peso (%)</label>
                 <input type="number" name="specific_weight" class="form-control weight-input" step="0.1" min="0"
-                       max="{{ 100 - total_weight }}"
+                       max="{{ 100.1 - total_weight }}"
                        data-original="0"
                        required>
                 <small class="form-text text-muted">
@@ -130,7 +130,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.weight-input').forEach(input => {
             input.addEventListener('input', () => {
-                const max = parseFloat(input.getAttribute('max')) || 100;
+                const max = parseFloat(input.getAttribute('max')) || 100.1;
                 const val = parseFloat(input.value);
                 if (val > max || val < 0 || isNaN(val)) {
                     input.value = 0;

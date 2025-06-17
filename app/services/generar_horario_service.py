@@ -2,7 +2,12 @@ from app.db import DatabaseConnection
 from app.http_errors import HTTP_OK, HTTP_BAD_REQUEST
 from openpyxl import Workbook
 from io import BytesIO
-from datetime import datetime, timedelta
+
+# Queries externas
+from app.sql_queries.generar_horario_queries import (
+    GET_SECCIONES_CON_DATOS,
+    GET_SALAS_DISPONIBLES
+)
 
 class GenerarHorarioService:
     def __init__(self):
@@ -17,34 +22,21 @@ class GenerarHorarioService:
 
     def generar(self):
         try:
-            # 1. Obtener todas las secciones activas con sus datos relevantes
-            self.cursor.execute('''
-                SELECT s.section_id, s.number, p.name as profesor, c.name as curso, c.creditos, COUNT(e.enrollment_id) as inscritos
-                FROM sections s
-                JOIN course_instances ci ON s.instance_id = ci.instance_id
-                JOIN courses c ON ci.course_id = c.course_id
-                JOIN professors p ON s.professor_id = p.professor_id
-                LEFT JOIN enrollments e ON s.section_id = e.section_id
-                GROUP BY s.section_id
-            ''')
+            self.cursor.execute(GET_SECCIONES_CON_DATOS)
             secciones = self.cursor.fetchall()
 
-            # 2. Obtener todas las salas disponibles
-            self.cursor.execute("SELECT classroom_id, name, capacity FROM classrooms")
+            self.cursor.execute(GET_SALAS_DISPONIBLES)
             salas = self.cursor.fetchall()
 
             if not secciones or not salas:
                 return False, "No hay secciones o salas disponibles para generar el horario."
 
-            # 3. Estado: disponibilidad por sala, profesor y sección
             disponibilidad = {}
-            horario = []
-
             for dia in self.dias:
                 for hora_inicio in self.modulos_por_dia:
                     for sala in salas:
                         key = (sala["classroom_id"], dia, hora_inicio)
-                        disponibilidad[key] = None  # vacío = disponible
+                        disponibilidad[key] = None
 
             asignaciones = []
 
@@ -59,9 +51,7 @@ class GenerarHorarioService:
                         for sala in salas:
                             if sala["capacity"] < inscritos:
                                 continue
-                            # Verificar disponibilidad total
                             if all(disponibilidad[(sala["classroom_id"], dia, hora)] is None for hora in bloque):
-                                # Asignar bloque
                                 for hora in bloque:
                                     disponibilidad[(sala["classroom_id"], dia, hora)] = sec["section_id"]
                                 asignaciones.append({
@@ -83,7 +73,6 @@ class GenerarHorarioService:
                 if not se_asigno:
                     return False, f"No fue posible asignar horario a la sección {sec['curso']} - Sec {sec['number']}"
 
-            # Crear Excel
             wb = Workbook()
             ws = wb.active
             ws.title = "Horario generado"
@@ -98,5 +87,5 @@ class GenerarHorarioService:
             return True, output
 
         except Exception as e:
-            print("❌ Error al generar horario:", e)
+            print("Error al generar horario:", e)
             return False, "Error interno al generar el horario."

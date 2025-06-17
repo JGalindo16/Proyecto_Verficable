@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect
+from flask import Blueprint, render_template, request, redirect, flash
 from app.services.section_service import SectionService
 from app.services.course_instance_service import CourseInstanceService
 from app.services.course_service import CourseService
@@ -13,21 +13,34 @@ course_service = CourseService()
 def add_section(course_id, instance_id):
     section_name = request.form.get("section_name")
     professor_id = request.form.get("professor_id")
-    student_ids = request.form.getlist("student_ids") 
+    student_ids = request.form.getlist("student_ids") or []
 
     if not section_name or not professor_id:
-        return redirect(f'/courses/{course_id}/instances/{instance_id}', code=400)
+        flash("Todos los campos son obligatorios.", "danger")
+        return redirect(f'/courses/{course_id}/instances/{instance_id}')
 
-    section_id = section_service.add_section(instance_id, section_name, professor_id)
+    for student_id in student_ids:
+        result = section_service.check_student_enrollment_in_instance(student_id, instance_id)
+        if result:
+            flash(f"El estudiante \"{result['name']}\" ya está inscrito en otra sección de esta instancia.", "danger")
+            return redirect(f'/courses/{course_id}/instances/{instance_id}')
 
-    if student_ids:
-        section_service.add_students_to_section(section_id, student_ids)
+    result = section_service.add_section(instance_id, section_name, professor_id, student_ids)
 
+    if not result["success"]:
+        flash(result["message"], "danger")
+        return redirect(f'/courses/{course_id}/instances/{instance_id}')
+
+    flash("Sección creada exitosamente.", "success")
     return redirect(f'/courses/{course_id}/instances/{instance_id}')
 
 @section_bp.route('/courses/<int:course_id>/instances/<int:instance_id>/sections/<int:section_id>/delete', methods=['POST'])
 def delete_section(course_id, instance_id, section_id):
-    section_service.delete_section(section_id)
+    result = section_service.delete_section(section_id)
+    if not result["success"]:
+        flash(result["message"], "danger")
+    else:
+        flash("Sección eliminada exitosamente.", "success")
     return redirect(f'/courses/{course_id}/instances/{instance_id}')
 
 @section_bp.route('/courses/<int:course_id>/instances/<int:instance_id>/sections/<int:section_id>')
@@ -39,10 +52,11 @@ def view_section(course_id, instance_id, section_id):
     professors = section_service.get_all_professors()
     all_students = section_service.get_all_students()
     enrolled_student_ids = section_service.get_enrolled_student_ids(section_id)
-    
+
     if not course or not instance or not section:
-        return "Recurso no encontrado", 404
-        
+        flash("Recurso no encontrado.", "danger")
+        return redirect(f'/courses/{course_id}/instances/{instance_id}')
+
     return render_template(
         'sections/show.html',
         course=course,
@@ -59,13 +73,22 @@ def update_section(course_id, instance_id, section_id):
     section_number = request.form.get('section_number')
     professor_id = request.form.get('professor_id')
     student_ids = request.form.getlist('student_ids')
-    
+
     if not section_number or not professor_id:
+        flash("Todos los campos son obligatorios.", "danger")
         return redirect(f'/courses/{course_id}/instances/{instance_id}/sections/{section_id}')
-    
-    success = section_service.update_section(section_id, section_number, professor_id)
-    
-    if success:
-        section_service.update_section_students(section_id, student_ids)
-    
+
+    for student_id in student_ids:
+        result = section_service.check_student_enrollment_in_instance(student_id, instance_id, section_id)
+        if result:
+            flash(f"El estudiante \"{result['name']}\" ya está inscrito en otra sección de esta instancia.", "danger")
+            return redirect(f'/courses/{course_id}/instances/{instance_id}/sections/{section_id}')
+
+    result = section_service.update_section(section_id, section_number, professor_id)
+    if not result["success"]:
+        flash(result["message"], "danger")
+        return redirect(f'/courses/{course_id}/instances/{instance_id}/sections/{section_id}')
+
+    section_service.update_section_students(section_id, student_ids)
+    flash("Sección actualizada exitosamente.", "success")
     return redirect(f'/courses/{course_id}/instances/{instance_id}/sections/{section_id}')

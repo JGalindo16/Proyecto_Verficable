@@ -1,5 +1,8 @@
+# app/services/section_service.py
+
 from app.db import DatabaseConnection
 from app.http_errors import HTTP_OK, HTTP_BAD_REQUEST
+from app.sql_queries.section_queries import *
 
 class SectionService:
     def __init__(self):
@@ -7,117 +10,128 @@ class SectionService:
         self.cursor = self.db.connect()
 
     def get_sections_by_instance(self, instance_id: int):
-        self.cursor.execute("""
-            SELECT 
-                s.section_id AS id,
-                s.number,
-                s.professor_id,
-                CONCAT('Sección ', s.number) AS name,
-                p.name AS professor,
-                COUNT(e.enrollment_id) AS student_count
-            FROM sections s
-            LEFT JOIN professors p ON s.professor_id = p.professor_id
-            LEFT JOIN enrollments e ON s.section_id = e.section_id
-            WHERE s.instance_id = %s
-            GROUP BY s.section_id, p.name
-        """, (instance_id,))
+        self.cursor.execute(GET_SECTIONS_BY_INSTANCE, (instance_id,))
         return self.cursor.fetchall()
-    
-    def add_section(self, instance_id: int, section_name: str, professor_id: int):
+
+    def add_section(self, instance_id: int, section_name: str, professor_id: int, student_ids: list = None):
         try:
             section_number = int(section_name)
-            
-            sql = "INSERT INTO sections (instance_id, number, professor_id) VALUES (%s, %s, %s)"
-            self.cursor.execute(sql, (instance_id, section_number, professor_id))
+
+            print(student_ids)
+            self.cursor.execute(CHECK_DUPLICATE_SECTION_IN_INSTANCE, (instance_id, section_number))
+            if self.cursor.fetchone()['count'] > 0:
+                return {"success": False, "message": "Ya existe una sección con ese número en esta instancia."}
+
+
+            if student_ids is None:
+                student_ids = []
+
+            for student_id in student_ids:
+                self.cursor.execute(CHECK_STUDENT_ALREADY_ENROLLED_WITH_NAME, (student_id, instance_id, 0))
+                result_check = self.cursor.fetchone()
+                if result_check:
+                    return {
+                        "success": False,
+                        "message": f"El estudiante \"{result_check['name']}\" ya está inscrito en otra sección de esta instancia."
+                    }
+
+            self.cursor.execute(INSERT_SECTION, (instance_id, section_number, professor_id))
+            section_id = self.cursor.lastrowid
+
+            if student_ids:
+                values = [(section_id, student_id) for student_id in student_ids]
+                self.cursor.executemany(INSERT_STUDENTS_TO_SECTION, values)
+
             self.db.commit()
-            return self.cursor.lastrowid
+            return {
+                "success": True,
+                "message": "Sección y estudiantes creados correctamente.",
+                "section_id": section_id
+            }
+
         except Exception as e:
-            print("Error al agregar sección:", e)
-            return None
-        
+            return {"success": False, "message": "Error al agregar sección."}
+
     def add_students_to_section(self, section_id: int, student_ids: list):
         try:
-            sql = "INSERT INTO enrollments (section_id, student_id) VALUES (%s, %s)"
+            self.cursor.execute(GET_INSTANCE_ID_FROM_SECTION, (section_id,))
+            result = self.cursor.fetchone()
+            if not result:
+                return {"success": False, "message": "Sección no encontrada."}
+            instance_id = result["instance_id"]
+
+            for student_id in student_ids:
+                self.cursor.execute(CHECK_STUDENT_ALREADY_ENROLLED, (student_id, instance_id, section_id))
+                if self.cursor.fetchone()["count"] > 0:
+                    return {
+                        "success": False,
+                        "message": f"El estudiante con ID {student_id} ya está inscrito en otra sección de esta instancia."
+                    }
+
             values = [(section_id, student_id) for student_id in student_ids]
-            self.cursor.executemany(sql, values)
+            self.cursor.executemany(INSERT_STUDENTS_TO_SECTION, values)
             self.db.commit()
+            return {"success": True, "message": "Estudiantes agregados correctamente."}
         except Exception as e:
-            print("Error al agregar estudiantes a la sección:", e)
-    
+            return {"success": False, "message": "Error al agregar estudiantes a la sección."}
+
     def delete_section(self, section_id: int):
         try:
-            sql = "DELETE FROM sections WHERE section_id = %s"
-            self.cursor.execute(sql, (section_id,))
+            self.cursor.execute(DELETE_SECTION, (section_id,))
             self.db.commit()
-            return True
+            return {"success": True, "message": "Sección eliminada exitosamente."}
         except Exception as e:
-            print("Error al eliminar sección:", e)
-            return False
+            return {"success": False, "message": "Error al eliminar sección."}
 
     def get_section_by_id(self, section_id: int):
-        self.cursor.execute("""
-            SELECT 
-                s.section_id AS id,
-                s.number,
-                s.professor_id,
-                s.closed,
-                p.name AS professor_name,
-                CONCAT('Sección ', s.number) AS name
-            FROM sections s
-            LEFT JOIN professors p ON s.professor_id = p.professor_id
-            WHERE s.section_id = %s
-        """, (section_id,))
+        self.cursor.execute(GET_SECTION_BY_ID, (section_id,))
         return self.cursor.fetchone()
-    
+
     def get_students_in_section(self, section_id: int):
-        self.cursor.execute("""
-            SELECT 
-                s.student_id AS id,
-                s.name,
-                s.email
-            FROM enrollments e
-            JOIN students s ON e.student_id = s.student_id
-            WHERE e.section_id = %s
-            ORDER BY s.name
-        """, (section_id,))
+        self.cursor.execute(GET_STUDENTS_IN_SECTION, (section_id,))
         return self.cursor.fetchall()
-        
+
     def update_section(self, section_id: int, section_number: int, professor_id: int):
         try:
-            sql = "UPDATE sections SET number = %s, professor_id = %s WHERE section_id = %s"
-            self.cursor.execute(sql, (section_number, professor_id, section_id))
+            # Verificar si ya existe otra sección con ese número (excluyendo esta)
+            self.cursor.execute(CHECK_DUPLICATE_SECTION_NUMBER, (section_id, section_number))
+            if self.cursor.fetchone()["count"] > 0:
+                return {"success": False, "message": "Ya existe otra sección con ese número."}
+
+            self.cursor.execute(UPDATE_SECTION, (section_number, professor_id, section_id))
             self.db.commit()
-            return True
+            return {"success": True, "message": "Sección actualizada exitosamente."}
         except Exception as e:
-            print("Error al actualizar sección:", e)
-            return False
-            
+            return {"success": False, "message": "Error al actualizar sección."}
+
     def update_section_students(self, section_id: int, student_ids: list):
         try:
-            self.cursor.execute("DELETE FROM enrollments WHERE section_id = %s", (section_id,))
-            
+            self.cursor.execute(DELETE_STUDENTS_FROM_SECTION, (section_id,))
             if student_ids:
-                sql = "INSERT INTO enrollments (section_id, student_id) VALUES (%s, %s)"
                 values = [(section_id, student_id) for student_id in student_ids]
-                self.cursor.executemany(sql, values)
-                
+                self.cursor.executemany(INSERT_STUDENTS_TO_SECTION, values)
             self.db.commit()
-            return True
+            return {"success": True, "message": "Estudiantes actualizados correctamente."}
         except Exception as e:
-            print("Error al actualizar estudiantes de la sección:", e)
-            return False
-            
+            return {"success": False, "message": "Error al actualizar estudiantes."}
+
     def get_enrolled_student_ids(self, section_id: int):
-        self.cursor.execute("""
-            SELECT student_id FROM enrollments WHERE section_id = %s
-        """, (section_id,))
+        self.cursor.execute(GET_ENROLLED_STUDENT_IDS, (section_id,))
         result = self.cursor.fetchall()
         return [row['student_id'] for row in result]
 
     def get_all_professors(self):
-        self.cursor.execute("SELECT professor_id AS id, name FROM professors")
+        self.cursor.execute(GET_ALL_PROFESSORS)
         return self.cursor.fetchall()
 
     def get_all_students(self):
-        self.cursor.execute("SELECT student_id AS id, name FROM students")
+        self.cursor.execute(GET_ALL_STUDENTS)
         return self.cursor.fetchall()
+
+    def check_student_enrollment_in_instance(self, student_id: int, instance_id: int):
+        self.cursor.execute(CHECK_STUDENT_ALREADY_ENROLLED_WITH_NAME, (student_id, instance_id, 0))
+        return self.cursor.fetchone()
+    
+    def check_student_enrollment_in_instance(self, student_id: int, instance_id: int, current_section_id: int = 0):
+        self.cursor.execute(CHECK_STUDENT_ALREADY_ENROLLED_WITH_NAME, (student_id, instance_id, current_section_id))
+        return self.cursor.fetchone()

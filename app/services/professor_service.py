@@ -1,5 +1,8 @@
+# app/services/professor_service.py
+
 from app.db import DatabaseConnection
 from app.http_errors import HTTP_OK, HTTP_BAD_REQUEST
+import app.sql_queries.professor_queries as q
 
 class ProfessorService:
     def __init__(self):
@@ -8,38 +11,35 @@ class ProfessorService:
 
     def add_professor(self, name: str, email: str):
         try:
-            sql = "INSERT INTO professors (name, email) VALUES (%s, %s)"
-            self.cursor.execute(sql, (name, email))
+            self.cursor.execute(q.INSERT_PROFESSOR, (name, email))
             self.db.commit()
-            return HTTP_OK
+            return {"success": True}
         except Exception as e:
             print("Error al insertar profesor:", e)
-            return HTTP_BAD_REQUEST
+            return {"success": False, "message": "Error al registrar el profesor."}
 
     def get_all_professors(self):
-        self.cursor.execute("SELECT professor_id AS id, name, email FROM professors")
+        self.cursor.execute(q.GET_ALL_PROFESSORS)
         return self.cursor.fetchall()
 
     def get_professor_by_id(self, id: int):
-        self.cursor.execute("SELECT professor_id AS id, name, email FROM professors WHERE professor_id = %s", (id,))
+        self.cursor.execute(q.GET_PROFESSOR_BY_ID, (id,))
         return self.cursor.fetchone()
 
     def update_professor(self, id: int, name: str, email: str):
         try:
-            sql = "UPDATE professors SET name = %s, email = %s WHERE professor_id = %s"
-            self.cursor.execute(sql, (name, email, id))
+            self.cursor.execute(q.UPDATE_PROFESSOR, (name, email, id))
             self.db.commit()
-            return HTTP_OK
+            return {"success": True}
         except Exception as e:
             print("Error al actualizar profesor:", e)
-            return HTTP_BAD_REQUEST
+            return {"success": False, "message": "Error al actualizar los datos del profesor."}
 
     def delete_professor(self, id: int):
         try:
-            sql = "DELETE FROM professors WHERE professor_id = %s"
-            self.cursor.execute(sql, (id,))
+            self.cursor.execute(q.DELETE_PROFESSOR, (id,))
             self.db.commit()
-            return HTTP_OK
+            return {"success": True}
         except Exception as e:
             print("Error al eliminar profesor:", e)
-            return HTTP_BAD_REQUEST
+            return {"success": False, "message": "Error al eliminar el profesor."}

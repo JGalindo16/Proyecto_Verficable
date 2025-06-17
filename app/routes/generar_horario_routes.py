@@ -1,4 +1,4 @@
-from flask import Blueprint, send_file, flash, redirect, url_for
+from flask import Blueprint, send_file, flash, render_template
 from app.services.generar_horario_service import GenerarHorarioService
 
 generar_horario_bp = Blueprint('generar_horario', __name__)
@@ -8,7 +8,7 @@ def generar_horario():
     service = GenerarHorarioService()
     success, response = service.generar()
     if success:
-        flash("✅ Horario generado correctamente.", "success")
+        flash("Horario generado correctamente.", "success")
         return send_file(
             response,
             as_attachment=True,
@@ -16,5 +16,5 @@ def generar_horario():
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
     else:
-        flash(f"❌ Error al generar horario: {response}", "danger")
-        return redirect(url_for('home'))  # o a otra vista según tu diseño
+        flash(f"Error al generar horario: {response}", "danger")
+        return render_template('base/home.html')
