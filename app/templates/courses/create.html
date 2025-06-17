@@ -28,23 +28,6 @@
         <div class="space"></div>
         <button type="submit" class="btn btn-primary">Crear Curso</button>
     </form>
-
-    <div class="space"></div>
-    <form action="/load_json" method="post" enctype="multipart/form-data">
-        <h4>Cargar mediante archivo JSON</h4>
-        <div class="form-group">
-            <input type="file" class="form-control" id="fileInput" name="fileInput" accept="application/json">
-        </div>
-
-        {% if file_error %}
-            <div class="alert alert-danger mt-2" role="alert">
-                {{ file_error }}
-            </div>
-        {% endif %}
-
-        <div class="space"></div>
-        <button type="submit" class="btn btn-success">Subir Archivo</button>
-    </form>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </html>

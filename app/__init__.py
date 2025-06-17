@@ -9,6 +9,7 @@ from app.routes.generar_horario_routes import generar_horario_bp
 from app.routes.cerrar_seccion_y_reportes_routes import cerrar_reportar_bp
 from app.routes.section_routes import section_bp
 from app.routes.grade_routes import grade_bp
+from app.routes.evaluation_instance_routes import instance_bp
 from app.http_errors import HTTP_NOT_FOUND
 
 def create_app():
@@ -25,6 +26,7 @@ def create_app():
     app.register_blueprint(json_upload_bp)
     app.register_blueprint(generar_horario_bp)
     app.register_blueprint(cerrar_reportar_bp)
+    app.register_blueprint(instance_bp)
 
     @app.errorhandler(HTTP_NOT_FOUND)
     def not_found(e):

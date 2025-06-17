@@ -1,0 +1,142 @@
+{% extends "global/base.html" %}
+
+{% block title %}Instancias de Evaluación{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Instancias de Evaluación para Evaluación #{{ evaluation_id }}</h2>
+
+{% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<table class="table align-middle text-center">
+    <thead class="table-light">
+        <tr>
+            <th>Nombre</th>
+            <th>Peso</th>
+            <th>Obligatoria</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for inst in instances %}
+        <tr>
+            <td>{{ inst.name }}</td>
+            <td>{{ '%.2f'|format(inst.specific_weight * 100) }}%</td>
+            <td>{{ 'Sí' if inst.mandatory else 'No' }}</td>
+            <td>
+                <div class="d-flex justify-content-center gap-2">
+                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ inst.id }}">Editar</button>
+                    <form action="/evaluations/{{ evaluation_id }}/instances/{{ inst.id }}/delete" method="POST">
+                        <button class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar esta instancia?')">Eliminar</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+
+        <div class="modal fade" id="editModal{{ inst.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ inst.id }}" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form action="/evaluations/{{ evaluation_id }}/instances/{{ inst.id }}/edit" method="POST">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="editModalLabel{{ inst.id }}">Editar Instancia</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name">Nombre</label>
+                        <input type="text" name="name" class="form-control" value="{{ inst.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="specific_weight">Peso (%)</label>
+                        <input type="number" name="specific_weight" class="form-control weight-input" step="0.1" min="0"
+                               max="{{ 100 - total_weight + (inst.specific_weight * 100) }}"
+                               value="{{ inst.specific_weight * 100 }}"
+                               data-original="{{ inst.specific_weight * 100 }}"
+                               required>
+                        <small class="form-text text-muted">
+                            La suma de pesos no puede exceder el 100%.
+                        </small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="mandatory">¿Obligatoria?</label>
+                        <select name="mandatory" class="form-select">
+                            <option value="0" {% if not inst.mandatory %}selected{% endif %}>No</option>
+                            <option value="1" {% if inst.mandatory %}selected{% endif %}>Sí</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                  <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <tr><td colspan="4">No hay instancias registradas.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+<button class="btn btn-success mb-4" data-bs-toggle="modal" data-bs-target="#addInstanceModal">Agregar Instancia</button>
+<a href="/" class="btn btn-secondary mb-4">Volver al home</a>
+
+<div class="modal fade" id="addInstanceModal" tabindex="-1" aria-labelledby="addInstanceModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="/evaluations/{{ evaluation_id }}/instances" method="POST">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addInstanceModalLabel">Agregar Instancia</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+            <div class="mb-3">
+                <label for="name">Nombre</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="specific_weight">Peso (%)</label>
+                <input type="number" name="specific_weight" class="form-control weight-input" step="0.1" min="0"
+                       max="{{ 100 - total_weight }}"
+                       data-original="0"
+                       required>
+                <small class="form-text text-muted">
+                    La suma de pesos no puede exceder el 100%.
+                </small>
+            </div>
+            <div class="mb-3">
+                <label for="mandatory">¿Obligatoria?</label>
+                <select name="mandatory" class="form-select">
+                    <option value="0">No</option>
+                    <option value="1">Sí</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Crear Instancia</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.weight-input').forEach(input => {
+            input.addEventListener('input', () => {
+                const max = parseFloat(input.getAttribute('max')) || 100;
+                const val = parseFloat(input.value);
+                if (val > max || val < 0 || isNaN(val)) {
+                    input.value = 0;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

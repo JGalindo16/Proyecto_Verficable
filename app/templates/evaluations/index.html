@@ -26,6 +26,7 @@
             <td>{{ 'Sí' if eval.optional else 'No' }}</td>
             <td>
                 <div class="d-flex justify-content-center gap-2">
+                    <a href="/evaluations/{{ eval.id }}/instances" class="btn btn-info btn-sm">Instancias</a>
                     <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ eval.id }}">Editar</button>
                     <form action="/sections/{{ section_id }}/evaluations/{{ eval.id }}/delete" method="POST">
                         <button class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar esta evaluación?')">Eliminar</button>
@@ -34,7 +35,6 @@
             </td>
         </tr>
 
-        <!-- Modal edit evaluations -->
         <div class="modal fade" id="editModal{{ eval.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ eval.id }}" aria-hidden="true">
           <div class="modal-dialog">
             <div class="modal-content">
@@ -81,11 +81,11 @@
     </tbody>
 </table>
 
-<!-- Button add evaluation -->
+
 <button class="btn btn-success mb-4" data-bs-toggle="modal" data-bs-target="#addEvaluationModal">Agregar Evaluación</button>
 <a href="/" class="btn btn-secondary mb-4">Volver al home</a>
 
-<!-- Modal add evaluation -->
+
 <div class="modal fade" id="addEvaluationModal" tabindex="-1" aria-labelledby="addEvaluationModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">

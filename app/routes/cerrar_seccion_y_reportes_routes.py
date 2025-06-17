@@ -41,3 +41,11 @@ def certificado_por_alumno():
         flash("No se pudo generar el certificado del estudiante.", "danger")
         return redirect('/')
     return send_file(pdf_path, as_attachment=True)
+
+@cerrar_reportar_bp.route('/reporte/resumen-estudiante/<int:student_id>', methods=['POST'])
+def resumen_estudiante(student_id):
+    pdf_path = service.generar_reporte_resumen_por_estudiante(student_id)
+    if not pdf_path:
+        flash("No se pudo generar el resumen del estudiante.", "danger")
+        return redirect(f"/students/{student_id}")
+    return send_file(pdf_path, as_attachment=True)

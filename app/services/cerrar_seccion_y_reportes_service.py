@@ -285,3 +285,108 @@ class CerrarSeccionYReportesService:
         except Exception as e:
             print("Error generando certificado alumno:", e)
             return None
+    
+    def generar_reporte_resumen_por_estudiante(self, student_id: int):
+        try:
+            self.cursor.execute("""
+                SELECT st.name AS student_name, c.name AS course_name, c.code, s.section_id,
+                    ev.evaluation_id, ev.type AS eval_type, ev.weight AS eval_weight,
+                    ei.name AS instance_name, ei.specific_weight, g.score
+                FROM students st
+                JOIN enrollments e ON st.student_id = e.student_id
+                JOIN sections s ON e.section_id = s.section_id
+                JOIN grades g ON e.enrollment_id = g.enrollment_id
+                JOIN evaluation_instances ei ON g.instance_eval_id = ei.instance_eval_id
+                JOIN evaluations ev ON ei.evaluation_id = ev.evaluation_id
+                JOIN course_instances ci ON s.instance_id = ci.instance_id
+                JOIN courses c ON ci.course_id = c.course_id
+                WHERE st.student_id = %s AND s.closed = TRUE
+                ORDER BY c.name, ev.evaluation_id, ei.instance_eval_id
+            """, (student_id,))
+            rows = self.cursor.fetchall()
+            if not rows:
+                return None
+
+            from collections import defaultdict
+            cursos = defaultdict(lambda: {
+                "nombre": "",
+                "codigo": "",
+                "evaluaciones": defaultdict(lambda: {
+                    "type": "", "weight": 0.0, "instancias": []
+                })
+            })
+
+            student_name = rows[0]["student_name"]
+
+            for row in rows:
+                course = row["course_name"]
+                code = row["code"]
+                eval_id = row["evaluation_id"]
+                cursos[course]["nombre"] = course
+                cursos[course]["codigo"] = code
+                cursos[course]["evaluaciones"][eval_id]["type"] = row["eval_type"]
+                cursos[course]["evaluaciones"][eval_id]["weight"] = row["eval_weight"]
+                cursos[course]["evaluaciones"][eval_id]["instancias"].append({
+                    "name": row["instance_name"],
+                    "score": row["score"],
+                    "specific_weight": row["specific_weight"]
+                })
+
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", 'B', 14)
+            pdf.cell(200, 10, txt="Resumen Académico del Estudiante", ln=True, align='C')
+            pdf.set_font("Arial", '', 12)
+            pdf.cell(200, 10, txt=f"Nombre: {student_name}", ln=True)
+            pdf.ln(5)
+
+            promedio_global = 0.0
+            cantidad_cursos = 0
+
+            for curso, info in cursos.items():
+                pdf.set_font("Arial", 'B', 12)
+                pdf.cell(200, 10, txt=f"{info['nombre']} ({info['codigo']})", ln=True)
+
+                pdf.set_font("Arial", 'B', 11)
+                pdf.cell(70, 8, "Tipo", border=1)
+                pdf.cell(60, 8, "Instancia", border=1)
+                pdf.cell(30, 8, "Peso %", border=1)
+                pdf.cell(30, 8, "Nota", border=1, ln=True)
+
+                nota_final = 0.0
+
+                for eval_id, eval_data in info["evaluaciones"].items():
+                    subtotal = 0.0
+                    for inst in eval_data["instancias"]:
+                        score = inst["score"]
+                        try:
+                            score = float(score)
+                            if score < 1.0 or score > 7.0:
+                                score = 1.0
+                        except:
+                            score = 1.0
+                        subtotal += score * inst["specific_weight"]
+                        pdf.set_font("Arial", '', 11)
+                        pdf.cell(70, 8, txt=eval_data["type"], border=1)
+                        pdf.cell(60, 8, txt=inst["name"], border=1)
+                        pdf.cell(30, 8, txt=str(round(inst["specific_weight"], 2)), border=1)
+                        pdf.cell(30, 8, txt=str(round(score, 2)), border=1, ln=True)
+
+                    nota_final += subtotal * eval_data["weight"]
+
+                pdf.cell(200, 8, txt=f"Nota final del curso: {round(nota_final, 2)}", ln=True)
+                pdf.ln(5)
+                promedio_global += nota_final
+                cantidad_cursos += 1
+
+            if cantidad_cursos > 0:
+                pdf.set_font("Arial", 'B', 12)
+                pdf.cell(200, 10, txt=f"Promedio General (cursos cerrados): {round(promedio_global / cantidad_cursos, 2)}", ln=True)
+
+            path = f"/tmp/resumen_estudiante_{student_id}.pdf"
+            pdf.output(path)
+            return path
+
+        except Exception as e:
+            print("Error generando resumen por estudiante:", e)
+            return None

@@ -14,5 +14,8 @@
     <form action="/students/{{ data.id }}/delete" method="POST" style="display:inline;">
         <button type="submit" class="btn btn-danger" onclick="return confirm('¿Eliminar este estudiante?')">Eliminar</button>
     </form>
+    <form action="/reporte/resumen-estudiante/{{ data.id }}" method="POST" style="display:inline;">
+        <button type="submit" class="btn btn-info">Descargar resumen académico</button>
+    </form>
 </div>
 {% endblock %}
