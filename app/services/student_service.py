@@ -43,3 +43,13 @@ class StudentService:
         except Exception as e:
             print("Error al eliminar estudiante:", e)
             return HTTP_BAD_REQUEST
+        
+    def delete_all_students(self):
+        try:
+            sql = "DELETE FROM students"
+            self.cursor.execute(sql)
+            self.db.commit()
+            return HTTP_OK
+        except Exception as e:
+            print("Error al eliminar todos los estudiantes:", e)
+            return HTTP_BAD_REQUEST

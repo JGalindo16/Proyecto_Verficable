@@ -75,6 +75,15 @@ def delete_course(id):
     flash("Curso eliminado correctamente.", "success")
     return redirect('/courses')
 
+@course_bp.route('/courses/delete-all', methods=['POST'])
+def delete_all_courses():
+    result = service.delete_all_courses()
+    if not result["success"]:
+        flash(result["message"], "danger")
+    else:
+        flash("Todos los cursos han sido eliminados exitosamente.", "success")
+    return redirect('/courses')
+
 @course_bp.route('/load_json', methods=['POST'])
 def load_json():
     file = request.files.get("fileInput")

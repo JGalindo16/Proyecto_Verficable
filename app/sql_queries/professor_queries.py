@@ -24,3 +24,7 @@ DELETE_PROFESSOR = """
     DELETE FROM professors
     WHERE professor_id = %s
 """
+
+DELETE_ALL_PROFESSORS = """
+    DELETE FROM professors
+"""

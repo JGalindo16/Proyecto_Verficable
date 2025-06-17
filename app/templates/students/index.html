@@ -5,8 +5,13 @@
 {% block content %}
 <h1 class="mt-5 mb-4">Listado de Estudiantes</h1>
 
-<div class="mt-3">
+<div class="mt-3 d-flex justify-content-between">
     <a href="/students/create" class="btn btn-success">Añadir Estudiante</a>
+    {% if data %}
+    <form action="/students/delete-all" method="POST" class="d-inline" onsubmit="return confirmDeleteAll()">
+        <button type="submit" class="btn btn-danger">Eliminar Todos los Estudiantes</button>
+    </form>
+    {% endif %}
 </div>
 
 <table class="table table-striped align-middle">

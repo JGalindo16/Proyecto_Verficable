@@ -43,3 +43,12 @@ class ProfessorService:
         except Exception as e:
             print("Error al eliminar profesor:", e)
             return {"success": False, "message": "Error al eliminar el profesor."}
+
+    def delete_all_professors(self):
+        try:
+            self.cursor.execute(q.DELETE_ALL_PROFESSORS)
+            self.db.commit()
+            return {"success": True}
+        except Exception as e:
+            print("Error al eliminar todos los profesores:", e)
+            return {"success": False, "message": "Error al eliminar todos los profesores."}

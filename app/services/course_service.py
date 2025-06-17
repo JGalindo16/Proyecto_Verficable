@@ -70,6 +70,15 @@ class CourseService:
             print("Error al eliminar curso:", e)
             return HTTP_BAD_REQUEST
 
+    def delete_all_courses(self):
+        try:
+            self.cursor.execute(q.DELETE_ALL_COURSES)
+            self.db.commit()
+            return {"success": True}
+        except Exception as e:
+            print("Error al eliminar todos los cursos:", e)
+            return {"success": False, "message": "Error al eliminar todos los cursos."}
+
     def process_json(self, file_obj):
         try:
             courses = json.load(file_obj)

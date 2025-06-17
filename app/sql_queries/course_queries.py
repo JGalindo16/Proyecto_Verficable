@@ -19,3 +19,5 @@ GET_COURSE_BY_ID = "SELECT course_id AS id, name, code FROM courses WHERE course
 UPDATE_COURSE = "UPDATE courses SET name = %s, code = %s WHERE course_id = %s;"
 
 DELETE_COURSE = "DELETE FROM courses WHERE course_id = %s;"
+
+DELETE_ALL_COURSES = "DELETE FROM courses;"

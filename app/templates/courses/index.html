@@ -5,8 +5,13 @@
 {% block content %}
 <h1 class="mt-5 mb-4">Listado de Cursos</h1>
 
-<div class="mt-3">
+<div class="mt-3 d-flex justify-content-between">
     <a href="/create" class="btn btn-success">Añadir Curso</a>
+    {% if data %}
+    <form action="/courses/delete-all" method="POST" class="d-inline" onsubmit="return confirmDeleteAllCourses()">
+        <button type="submit" class="btn btn-danger">Eliminar Todos</button>
+    </form>
+    {% endif %}
 </div>
 
 <table class="table table-striped align-middle">
@@ -35,5 +40,14 @@
         {% endfor %}
     </tbody>
 </table>
+
+<script>
+function confirmDeleteAllCourses() {
+    if (confirm('¿Estás seguro de que quieres eliminar TODOS los cursos?')) {
+        return confirm('Esta acción NO se puede deshacer. ¿Confirmas definitivamente que quieres eliminar todos los cursos?');
+    }
+    return false;
+}
+</script>
 
 {% endblock %}

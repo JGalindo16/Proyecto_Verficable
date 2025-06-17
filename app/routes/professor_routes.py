@@ -72,3 +72,12 @@ def delete_professor(id):
     else:
         flash("Profesor eliminado exitosamente.", "success")
     return redirect('/professors')
+
+@professor_bp.route('/professors/delete-all', methods=['POST'])
+def delete_all_professors():
+    result = service.delete_all_professors()
+    if not result["success"]:
+        flash(result["message"], "danger")
+    else:
+        flash("Todos los profesores han sido eliminados exitosamente.", "success")
+    return redirect('/professors')
