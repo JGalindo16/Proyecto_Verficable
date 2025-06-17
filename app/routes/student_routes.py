@@ -52,3 +52,8 @@ def edit_student(id):
 def delete_student(id):
     service.delete_student(id)
     return redirect('/students')
+
+@student_bp.route('/students/delete-all', methods=['POST'])
+def delete_all_students():
+    service.delete_all_students()
+    return redirect('/students')
