@@ -68,24 +68,194 @@
     text-align: left;
 }
 
-.table-responsive {
-    overflow-x: auto;
+.btn {
+    border-width: 2px;
+    font-size: 1.1rem;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
 }
-.table th, .table td {
-    white-space: nowrap;
+
+.btn:focus, .btn:active {
+    box-shadow: 0 0 0 0.15rem rgba(51,23,108,0.15);
+    outline: none;
+}
+
+.btn-lg {
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
+}
+
+.shadow-sm {
+    box-shadow: 0 2px 8px rgba(51,23,108,0.04);
+}
+
+.fw-semibold {
+    font-weight: 500;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+}
+
+.hero-section .container {
+    position: relative;
+    z-index: 2;
+}
+
+/* Management Cards */
+.management-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
     text-align: center;
+    height: 100%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
-.bg-light-yellow {
-    background-color: #ffffd0;
-    font-weight: bold;
+
+.management-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--title-color), #667eea);
 }
-.bg-light-blue {
-    background-color: #e6f2ff;
-    font-weight: bold;
+
+.management-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
-.evaluation-group-border {
-    border-left: 2px solid #dee2e6 !important;
+
+.card-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--title-color), #667eea);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    font-size: 2rem;
 }
-.text-left {
-    text-align: left;
+
+.management-card .card-title {
+    color: var(--title-color);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+}
+
+.card-description {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+/* Tool Cards */
+.tool-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.tool-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.tool-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e17055;
+    font-size: 1.5rem;
+}
+
+/* Button Improvements */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #00b894, #00cec9);
+    border: none;
+}
+
+.btn-info {
+    background: linear-gradient(135deg, #74b9ff, #0984e3);
+    border: none;
+}
+
+.btn-outline-warning {
+    border-color: #fdcb6e;
+    color: #e17055;
+}
+
+.btn-outline-warning:hover {
+    background: #fdcb6e;
+    border-color: #fdcb6e;
+    color: white;
+}
+
+.btn-outline-secondary {
+    border-color: #b2bec3;
+    color: #636e72;
+}
+
+.btn-outline-secondary:hover {
+    background: #636e72;
+    border-color: #636e72;
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .btn-lg.w-75, .btn-lg.w-100 {
+        width: 100% !important;
+    }
+    
+    .hero-section {
+        background-attachment: scroll;
+    }
+    
+    .management-card {
+        margin-bottom: 1rem;
+    }
+    
+    .card-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
 }

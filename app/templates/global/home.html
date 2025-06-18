@@ -3,20 +3,98 @@
 {% block title %}Inicio | Sistema Académico{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8 text-center">
-        <h1 class="mb-4">Sistema de Gestión Académica</h1>
-        <p class="lead mb-5">Selecciona una sección para administrar:</p>
+<div class="hero-section">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="text-center mb-5">
+                    <h1 class="display-4 fw-bold mb-3" style="color: var(--title-color);">
+                        Sistema de Gestión Académica
+                    </h1>
+                    <p class="lead text-muted">Administra tu institución educativa de manera eficiente</p>
+                </div>
 
-        <div class="d-grid gap-3 col-md-6 mx-auto">
-            <a href="/courses" class="btn btn-outline-dark btn-lg">Cursos</a>
-            <a href="/professors" class="btn btn-outline-primary btn-lg">Profesores</a>
-            <a href="/students" class="btn btn-outline-success btn-lg">Estudiantes</a>
-            <button id="start-json-tour" class="btn btn-outline-warning btn-lg" data-intro="Comienza aquí para cargar los archivos JSON en orden">Cargar JSON</button>
-        
-            <form action="{{ url_for('generar_horario.generar_horario') }}" method="post" class="d-grid">
-                <button type="submit" class="btn btn-outline-info btn-lg">Generar horario</button>
-            </form>
+                <!-- Sección Principal de Gestión -->
+                <div class="row g-4 mb-5">
+                    <div class="col-md-4">
+                        <div class="management-card">
+                            <div class="card-icon">
+                                <i class="bi bi-book-fill"></i>
+                            </div>
+                            <h5 class="card-title">Cursos</h5>
+                            <p class="card-description">Gestiona el catálogo de cursos</p>
+                            <a href="/courses" class="btn btn-primary">
+                                <i class="bi bi-arrow-right me-1"></i>Administrar
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="management-card">
+                            <div class="card-icon">
+                                <i class="bi bi-person-badge-fill"></i>
+                            </div>
+                            <h5 class="card-title">Profesores</h5>
+                            <p class="card-description">Gestiona el registro docente</p>
+                            <a href="/professors" class="btn btn-success">
+                                <i class="bi bi-arrow-right me-1"></i>Administrar
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="management-card">
+                            <div class="card-icon">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                            <h5 class="card-title">Estudiantes</h5>
+                            <p class="card-description">Gestiona el registro estudiantil</p>
+                            <a href="/students" class="btn btn-info">
+                                <i class="bi bi-arrow-right me-1"></i>Administrar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección de Herramientas -->
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="tool-card">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="tool-icon me-3">
+                                    <i class="bi bi-upload"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Carga de Datos</h6>
+                                    <small class="text-muted">Importa información desde archivos JSON</small>
+                                </div>
+                            </div>
+                            <button id="start-json-tour" class="btn btn-outline-warning w-100" data-intro="Comienza aquí para cargar los archivos JSON en orden">
+                                <i class="bi bi-file-earmark-arrow-up me-2"></i>Cargar JSON
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="tool-card">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="tool-icon me-3">
+                                    <i class="bi bi-calendar-check"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Planificación</h6>
+                                    <small class="text-muted">Genera horarios académicos automáticamente</small>
+                                </div>
+                            </div>
+                            <form action="{{ url_for('generar_horario.generar_horario') }}" method="post">
+                                <button type="submit" class="btn btn-outline-secondary w-100">
+                                    <i class="bi bi-calendar3 me-2"></i>Generar Horario
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
