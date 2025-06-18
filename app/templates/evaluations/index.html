@@ -3,127 +3,152 @@
 {% block title %}Evaluaciones de la Sección{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Evaluaciones de la Sección #{{ section_id }}</h2>
+<div class="container py-4">
+    <div class="card card-action p-4 mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="fw-bold mb-0" style="color: var(--title-color);">Evaluaciones de la Sección #{{ section_id }}</h3>
+                
+                {% if error %}
+                    <div class="alert alert-danger mt-3">{{ error }}</div>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="/" class="btn btn-courses btn-action">
+                    <i class="bi bi-arrow-left"></i> Volver al home
+                </a>
+            </div>
+        </div>
+    </div>
 
-{% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
-{% endif %}
+    <div class="text-center mb-4">
+        <button class="btn btn-success btn-action" data-bs-toggle="modal" data-bs-target="#addEvaluationModal">
+            <i class="bi bi-plus-circle"></i> Agregar Evaluación
+        </button>
+    </div>
 
-<table class="table align-middle text-center">
-    <thead class="table-light">
-        <tr>
-            <th>Tipo</th>
-            <th>Peso</th>
-            <th>Opcional</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for eval in evaluations %}
-        <tr>
-            <td>{{ eval.type }}</td>
-            <td>{{ '%.2f'|format(eval.weight * 100) }}%</td>
-            <td>{{ 'Sí' if eval.optional else 'No' }}</td>
-            <td>
-                <div class="d-flex justify-content-center gap-2">
-                    <a href="/evaluations/{{ eval.id }}/instances" class="btn btn-info btn-sm">Instancias</a>
-                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ eval.id }}">Editar</button>
-                    <form action="/sections/{{ section_id }}/evaluations/{{ eval.id }}/delete" method="POST">
-                        <button class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar esta evaluación?')">Eliminar</button>
+    <div class="card card-action p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold mb-0" style="color: var(--title-color);">Lista de Evaluaciones</h4>
+            <span class="badge bg-light-blue text-dark">{{ evaluations|length }} evaluaciones</span>
+        </div>
+        
+        {% if evaluations %}
+            {% for eval in evaluations %}
+            <div class="d-flex justify-content-between align-items-center py-3 {% if not loop.last %}border-bottom{% endif %}">
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-light-blue text-dark me-3">{{ eval.type }}</span>
+                    <div>
+                        <h6 class="mb-1 fw-bold" style="color: var(--title-color);">Peso: {{ '%.2f'|format(eval.weight * 100) }}%</h6>
+                        <div class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>{{ 'Opcional' if eval.optional else 'Obligatoria' }}
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="/evaluations/{{ eval.id }}/instances" class="btn btn-info btn-sm">
+                        <i class="bi bi-list-ul"></i> Instancias
+                    </a>
+                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ eval.id }}">
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    <form action="/sections/{{ section_id }}/evaluations/{{ eval.id }}/delete" method="POST" class="d-inline">
+                        <button class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar esta evaluación?')">
+                            <i class="bi bi-trash"></i> Eliminar
+                        </button>
                     </form>
                 </div>
-            </td>
-        </tr>
-
-        <div class="modal fade" id="editModal{{ eval.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ eval.id }}" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <form action="/sections/{{ section_id }}/evaluations/{{ eval.id }}/edit" method="POST">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="editModalLabel{{ eval.id }}">Editar Evaluación</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="type">Tipo</label>
-                        <input type="text" name="type" class="form-control" value="{{ eval.type }}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="weight">Peso (%)</label>
-                        <input type="number" name="weight" class="form-control weight-input" step="0.1" min="0"
-                               max="{{ 100 - total_weight + (eval.weight * 100) }}"
-                               value="{{ eval.weight * 100 }}"
-                               data-original="{{ eval.weight * 100 }}"
-                               required>
-                        <small class="form-text text-muted">
-                            El peso de las evaluaciones no puede superar el 100%.
-                        </small>
-                    </div>
-                    <div class="mb-3">
-                        <label for="optional">¿Es opcional?</label>
-                        <select name="optional" class="form-select">
-                            <option value="0" {% if not eval.optional %}selected{% endif %}>No</option>
-                            <option value="1" {% if eval.optional %}selected{% endif %}>Sí</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                  <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                </div>
-              </form>
             </div>
-          </div>
-        </div>
+
+            <!-- Modal edición evaluación -->
+            <div class="modal fade" id="editModal{{ eval.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ eval.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form action="/sections/{{ section_id }}/evaluations/{{ eval.id }}/edit" method="POST">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editModalLabel{{ eval.id }}">Editar Evaluación</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="type" class="form-label">Tipo</label>
+                                    <input type="text" name="type" class="form-control" value="{{ eval.type }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="weight" class="form-label">Peso (%)</label>
+                                    <input type="number" name="weight" class="form-control weight-input" step="0.1" min="0"
+                                           max="{{ 100 - total_weight + (eval.weight * 100) }}"
+                                           value="{{ eval.weight * 100 }}"
+                                           data-original="{{ eval.weight * 100 }}"
+                                           required>
+                                    <small class="form-text text-muted">
+                                        El peso de las evaluaciones no puede superar el 100%.
+                                    </small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="optional" class="form-label">¿Es opcional?</label>
+                                    <select name="optional" class="form-select">
+                                        <option value="0" {% if not eval.optional %}selected{% endif %}>No</option>
+                                        <option value="1" {% if eval.optional %}selected{% endif %}>Sí</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         {% else %}
-        <tr><td colspan="4">No hay evaluaciones registradas.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-
-<button class="btn btn-success mb-4" data-bs-toggle="modal" data-bs-target="#addEvaluationModal">Agregar Evaluación</button>
-<a href="/" class="btn btn-secondary mb-4">Volver al home</a>
-
-
-<div class="modal fade" id="addEvaluationModal" tabindex="-1" aria-labelledby="addEvaluationModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form action="/sections/{{ section_id }}/evaluations" method="POST">
-        <div class="modal-header">
-          <h5 class="modal-title" id="addEvaluationModalLabel">Agregar Evaluación</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
-        <div class="modal-body">
-            <div class="mb-3">
-                <label for="type">Tipo</label>
-                <input type="text" name="type" class="form-control" required>
+            <div class="text-center py-4">
+                <div class="alert alert-info">No hay evaluaciones registradas.</div>
             </div>
-            <div class="mb-3">
-                <label for="weight">Peso (%)</label>
-                <input type="number" name="weight" class="form-control weight-input" step="0.1" min="0"
-                       max="{{ 100 - total_weight }}"
-                       data-original="0"
-                       required>
-                <small class="form-text text-muted">
-                    El peso de las evaluaciones no puede superar el 100%.
-                </small>
-            </div>
-            <div class="mb-3">
-                <label for="optional">¿Es opcional?</label>
-                <select name="optional" class="form-select">
-                    <option value="0">No</option>
-                    <option value="1">Sí</option>
-                </select>
-            </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Crear Evaluación</button>
-        </div>
-      </form>
+        {% endif %}
     </div>
-  </div>
+
+    <!-- Modal crear evaluación -->
+    <div class="modal fade" id="addEvaluationModal" tabindex="-1" aria-labelledby="addEvaluationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/sections/{{ section_id }}/evaluations" method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addEvaluationModalLabel">Agregar Evaluación</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="type" class="form-label">Tipo</label>
+                            <input type="text" name="type" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="weight" class="form-label">Peso (%)</label>
+                            <input type="number" name="weight" class="form-control weight-input" step="0.1" min="0"
+                                   max="{{ 100 - total_weight }}"
+                                   data-original="0"
+                                   required>
+                            <small class="form-text text-muted">
+                                El peso de las evaluaciones no puede superar el 100%.
+                            </small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="optional" class="form-label">¿Es opcional?</label>
+                            <select name="optional" class="form-select">
+                                <option value="0">No</option>
+                                <option value="1">Sí</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Crear Evaluación</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
