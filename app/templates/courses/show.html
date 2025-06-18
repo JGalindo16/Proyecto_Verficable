@@ -3,23 +3,31 @@
 {% block title %}Curso #{{ data.id }}{% endblock %}
 
 {% block content %}
-    <div class="base container mt-4">
-        <h2>Curso #{{ data.id }}</h2>
-        <div class="space"></div>
-        <h5><strong>Nombre:</strong> {{ data.name }}</h5>
-        <h5><strong>Código:</strong> {{ data.code }}</h5>
-        <div class="space mb-3"></div>
+<div class="container py-4">
+    <div class="card card-action p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3 class="fw-bold mb-0" style="color: var(--title-color);">Curso #{{ data.id }}</h3>
+            <span class="badge bg-light-blue text-dark fs-6">{{ data.code }}</span>
+        </div>
+        <h5 class="mb-2"><strong>Nombre:</strong> {{ data.name }}</h5>
+        <div class="d-flex gap-2 mt-3">
+            <a href="/courses" class="btn btn-courses btn-action flex-fill">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+            <a href="/courses/{{ data.id }}/edit" class="btn btn-warning btn-action flex-fill">
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+            <form action="/courses/{{ data.id }}/delete" method="POST" style="display:inline;" class="flex-fill">
+                <button type="submit" class="btn btn-danger btn-action w-100" onclick="return confirm('¿Eliminar este curso?')">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+            </form>
+        </div>
+    </div>
 
-        <a href="/courses" class="btn btn-primary">Volver al listado</a>
-        <a href="/courses/{{ data.id }}/edit" class="btn btn-warning">Editar</a>
-        <form action="/courses/{{ data.id }}/delete" method="POST" style="display:inline;">
-            <button type="submit" class="btn btn-danger" onclick="return confirm('¿Eliminar este curso?')">Eliminar</button>
-        </form>
-
-        <hr class="my-4">
-
-        <h4>Instancias del Curso</h4>
-        <table class="table">
+    <div class="card card-action p-4 mb-4">
+        <h4 class="fw-bold mb-3" style="color: var(--title-color);">Instancias del Curso</h4>
+        <table class="table table-borderless align-middle mb-0">
             <thead>
                 <tr>
                     <th>Año</th>
@@ -28,90 +36,92 @@
                 </tr>
             </thead>
             <tbody>
-              {% for inst in data.instances %}
-              <tr>
-                  <td>{{ inst.year }}</td>
-                  <td>{{ inst.semester }}</td>
-                  <td>
-                      <a href="/courses/{{ data.id }}/instances/{{ inst.id }}" class="btn btn-sm btn-primary">Ver</a>
-                      <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editInstanceModal{{ inst.id }}">
-                          Editar
-                      </button>
-                      <form action="/courses/{{ data.id }}/instances/{{ inst.id }}/delete" method="POST" style="display:inline;">
-                          <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar esta instancia?')">Eliminar</button>
-                      </form>
-                  </td>
-              </tr>
-          
-              <div class="modal fade" id="editInstanceModal{{ inst.id }}" tabindex="-1" aria-labelledby="editInstanceModalLabel{{ inst.id }}" aria-hidden="true">
-                  <div class="modal-dialog">
-                      <div class="modal-content">
-                          <form action="/courses/{{ data.id }}/instances/{{ inst.id }}/edit" method="POST">
-                              <div class="modal-header">
-                                  <h5 class="modal-title" id="editInstanceModalLabel{{ inst.id }}">Editar instancia de curso</h5>
-                                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                              </div>
-                              <div class="modal-body">
-                                  <div class="form-group">
-                                      <label for="year{{ inst.id }}">Año</label>
-                                      <input type="number" class="form-control" name="year" id="year{{ inst.id }}" value="{{ inst.year }}" required>
-                                  </div>
-                                  <div class="form-group mt-3">
-                                      <label for="semester{{ inst.id }}">Semestre</label>
-                                      <select class="form-control" name="semester" id="semester{{ inst.id }}" required>
-                                          <option value="1" {% if inst.semester == '1' %}selected{% endif %}>1</option>
-                                          <option value="2" {% if inst.semester == '2' %}selected{% endif %}>2</option>
-                                      </select>
-                                  </div>
-                              </div>
-                              <div class="modal-footer">
-                                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                  <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                              </div>
-                          </form>
-                      </div>
-                  </div>
-              </div>
-              {% endfor %}
-          </tbody>
+                {% for inst in data.instances %}
+                <tr>
+                    <td>{{ inst.year }}</td>
+                    <td>{{ inst.semester }}</td>
+                    <td>
+                        <a href="/courses/{{ data.id }}/instances/{{ inst.id }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-eye"></i> Ver
+                        </a>
+                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editInstanceModal{{ inst.id }}">
+                            <i class="bi bi-pencil"></i> Editar
+                        </button>
+                        <form action="/courses/{{ data.id }}/instances/{{ inst.id }}/delete" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar esta instancia?')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                <!-- Modal edición instancia -->
+                <div class="modal fade" id="editInstanceModal{{ inst.id }}" tabindex="-1" aria-labelledby="editInstanceModalLabel{{ inst.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form action="/courses/{{ data.id }}/instances/{{ inst.id }}/edit" method="POST">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="editInstanceModalLabel{{ inst.id }}">Editar instancia de curso</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="year{{ inst.id }}" class="form-label">Año</label>
+                                        <input type="number" class="form-control" name="year" id="year{{ inst.id }}" value="{{ inst.year }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="semester{{ inst.id }}" class="form-label">Semestre</label>
+                                        <select class="form-control" name="semester" id="semester{{ inst.id }}" required>
+                                            <option value="1" {% if inst.semester == '1' %}selected{% endif %}>1</option>
+                                            <option value="2" {% if inst.semester == '2' %}selected{% endif %}>2</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
         </table>
-
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createInstanceModal">
-            Agregar instancia de curso
+        <button type="button" class="btn btn-success btn-action mt-3" data-bs-toggle="modal" data-bs-target="#createInstanceModal">
+            <i class="bi bi-plus-circle"></i> Agregar instancia de curso
         </button>
     </div>
 
-    <!-- Modal -->
+    <!-- Modal crear instancia -->
     <div class="modal fade" id="createInstanceModal" tabindex="-1" aria-labelledby="createInstanceModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <form action="/courses/{{ data.id }}/instances" method="POST">
-            <div class="modal-header">
-              <h5 class="modal-title" id="createInstanceModalLabel">Agregar instancia de curso</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/courses/{{ data.id }}/instances" method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createInstanceModalLabel">Agregar instancia de curso</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="year" class="form-label">Año</label>
+                            <input type="number" class="form-control" name="year" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="semester" class="form-label">Semestre</label>
+                            <select class="form-control" name="semester" required>
+                                <option value="">-- Seleccione --</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Crear</button>
+                    </div>
+                </form>
             </div>
-            <div class="modal-body">
-              <div class="form-group">
-                <label for="year">Año</label>
-                <input type="number" class="form-control" name="year" required>
-              </div>
-              <div class="form-group mt-3">
-                <label for="semester">Semestre</label>
-                <select class="form-control" name="semester" required>
-                  <option value="">-- Seleccione --</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                </select>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" class="btn btn-primary">Crear</button>
-            </div>
-          </form>
         </div>
-      </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</div>
 {% endblock %}

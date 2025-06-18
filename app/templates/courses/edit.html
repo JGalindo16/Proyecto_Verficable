@@ -3,19 +3,25 @@
 {% block title %}Editar Curso{% endblock %}
 
 {% block content %}
-    <h2>Editar Curso #{{ form.id }}</h2>
-    <form method="POST">
-        <div class="form-group">
-            <label for="name">Nombre</label>
-            <input type="text" class="form-control" id="name" name="name" value="{{ form.name }}">
-        </div>
-        <div class="form-group">
-            <label for="code">Código</label>
-            <input type="text" class="form-control" id="code" name="code" value="{{ form.code }}">
-        </div>
-        
-        <div class="space"></div>
-        <button type="submit" class="btn btn-warning">Guardar Cambios</button>
-        <a href="/courses/{{ form.id }}" class="btn btn-secondary">Cancelar</a>
-    </form>
+<div class="container py-4 d-flex justify-content-center">
+    <div class="card card-action p-4" style="max-width: 400px; width: 100%;">
+        <h3 class="fw-bold mb-3 text-center" style="color: var(--title-color);">Editar Curso #{{ form.id }}</h3>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="name" class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="name" name="name" value="{{ form.name }}" required>
+            </div>
+            <div class="mb-4">
+                <label for="code" class="form-label">Código</label>
+                <input type="text" class="form-control" id="code" name="code" value="{{ form.code }}" required>
+            </div>
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-warning btn-action">
+                    <i class="bi bi-save"></i> Guardar Cambios
+                </button>
+                <a href="/courses/{{ form.id }}" class="btn btn-secondary btn-action">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

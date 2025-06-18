@@ -3,20 +3,27 @@
 {% block title %}Crear Curso{% endblock %}
 
 {% block content %}
-    <form action="/courses" method="post">
-        <h2>CREAR CURSO</h2>
-        <div class="form-group">
-            <label for="name">Nombre del curso</label>
-            <input type="text" class="form-control" id="name" name="name" 
-                   value="{{ form.name }}" placeholder="Ingrese el nombre del curso">
-        </div>
-        <div class="form-group">
-            <label for="code">Código</label>
-            <input type="text" class="form-control" id="code" name="code" 
-                   value="{{ form.code }}" placeholder="Ingrese el código del curso">
-        </div>
-        <br>
-        <div class="space"></div>
-        <button type="submit" class="btn btn-primary">Crear Curso</button>
-    </form>
+<div class="container py-4 d-flex justify-content-center">
+    <div class="card card-action p-4" style="max-width: 400px; width: 100%;">
+        <h3 class="fw-bold mb-3 text-center" style="color: var(--title-color);">Crear Curso</h3>
+        <form action="/courses" method="post">
+            <div class="mb-3">
+                <label for="name" class="form-label">Nombre del curso</label>
+                <input type="text" class="form-control" id="name" name="name"
+                       value="{{ form.name }}" placeholder="Ingrese el nombre del curso" required>
+            </div>
+            <div class="mb-4">
+                <label for="code" class="form-label">Código</label>
+                <input type="text" class="form-control" id="code" name="code"
+                       value="{{ form.code }}" placeholder="Ingrese el código del curso" required>
+            </div>
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-courses btn-action">
+                    <i class="bi bi-plus-circle"></i> Crear Curso
+                </button>
+                <a href="/courses" class="btn btn-secondary btn-action">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
