@@ -59,13 +59,14 @@ class CourseService:
         except Exception as e:
             return {"success": False, "message": "Error al actualizar el curso"}
 
-    def delete_course(self, id: int):
+    def delete_course(self, id):
         try:
             self.cursor.execute(q.DELETE_COURSE, (id,))
             self.db.commit()
-            return HTTP_OK
+            return {"success": True}
         except Exception as e:
-            return HTTP_BAD_REQUEST
+            print("Error al eliminar curso:", e)
+            return {"success": False, "message": str(e)}
 
     def delete_all_courses(self):
         try:
