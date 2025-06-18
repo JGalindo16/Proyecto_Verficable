@@ -199,9 +199,8 @@
                                     <input type="text" class="form-control mb-2" id="studentSearch" placeholder="Buscar estudiante...">
 
                                     <div class="card">
-                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                        <div class="card-header">
                                             <span>Estudiantes</span>
-                                            <button type="button" class="btn btn-sm btn-outline-primary" id="selectAllStudents">Seleccionar Todos</button>
                                         </div>
                                         <div class="card-body" style="max-height: 200px; overflow-y: auto;">
                                             <div id="studentList">
@@ -218,9 +217,6 @@
                                                 </div>
                                                 {% endfor %}
                                             </div>
-                                        </div>
-                                        <div class="card-footer">
-                                            <small class="text-muted">Estudiantes seleccionados: <span id="selectedCount">0</span></small>
                                         </div>
                                     </div>
                                 </div>
@@ -256,14 +252,6 @@
 
         const studentSearch = document.getElementById('studentSearch');
         const studentItems = document.querySelectorAll('.student-item');
-        const studentCheckboxes = document.querySelectorAll('.student-checkbox');
-        const selectAllBtn = document.getElementById('selectAllStudents');
-        const selectedCountEl = document.getElementById('selectedCount');
-
-        function updateSelectedCount() {
-            const selectedCount = document.querySelectorAll('.student-checkbox:checked').length;
-            selectedCountEl.textContent = selectedCount;
-        }
 
         studentSearch.addEventListener('input', function () {
             const searchTerm = this.value.toLowerCase();
@@ -277,26 +265,6 @@
                 }
             });
         });
-
-        selectAllBtn.addEventListener('click', function () {
-            const allSelected = document.querySelectorAll('.student-checkbox:checked').length === studentCheckboxes.length;
-
-            studentCheckboxes.forEach(checkbox => {
-                const item = checkbox.closest('.student-item');
-                if (item.style.display !== 'none') {
-                    checkbox.checked = !allSelected;
-                }
-            });
-
-            updateSelectedCount();
-            this.textContent = allSelected ? 'Seleccionar Todos' : 'Deseleccionar Todos';
-        });
-
-        studentCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', updateSelectedCount);
-        });
-
-        updateSelectedCount();
     });
     </script>
     {% endblock %}
