@@ -3,43 +3,54 @@
 {% block title %}Listado de Profesores{% endblock %}
 
 {% block content %}
-<h1 class="mt-5 mb-4">Listado de Profesores</h1>
-
-<div class="mt-3 d-flex justify-content-between">
-    <a href="/professors/create" class="btn btn-success">Añadir Profesor</a>
-    {% if data %}
-    <form action="/professors/delete-all" method="POST" class="d-inline" onsubmit="return confirmDeleteAll()">
-        <button type="submit" class="btn btn-danger">Eliminar Todos</button>
-    </form>
-    {% endif %}
-</div>
-
-<table class="table table-striped align-middle">
-    <thead class="table-light">
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold" style="color: var(--title-color);">Profesores</h2>
+        <div>
+            <a href="/professors/create" class="btn btn-courses btn-action me-2">
+                <i class="bi bi-plus-circle me-1"></i> Añadir Profesor
+            </a>
+            {% if data %}
+            <form action="/professors/delete-all" method="POST" class="d-inline" onsubmit="return confirmDeleteAll()">
+                <button type="submit" class="btn btn-danger btn-action">
+                    <i class="bi bi-trash"></i> Eliminar Todos
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card card-action p-4">
         {% for prof in data %}
-        <tr>
-            <td>{{ prof.id }}</td>
-            <td>{{ prof.name }}</td>
-            <td>{{ prof.email }}</td>
-            <td>
-                <a href="/professors/{{ prof.id }}" class="btn btn-sm btn-primary">Ver</a>
-                <a href="/professors/{{ prof.id }}/edit" class="btn btn-sm btn-warning">Editar</a>
+        <div class="d-flex justify-content-between align-items-center py-3 {% if not loop.last %}border-bottom{% endif %}">
+            <div class="d-flex align-items-center">
+                <span class="badge bg-light-blue text-dark me-3">#{{ prof.id }}</span>
+                <div>
+                    <h5 class="mb-1 fw-bold" style="color: var(--title-color);">{{ prof.name }}</h5>
+                    <div class="text-muted"><i class="bi bi-envelope me-1"></i>{{ prof.email }}</div>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/professors/{{ prof.id }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-eye"></i> Ver
+                </a>
+                <a href="/professors/{{ prof.id }}/edit" class="btn btn-warning btn-sm">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
                 <form action="/professors/{{ prof.id }}/delete" method="POST" class="d-inline">
-                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este profesor?')">Eliminar</button>
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este profesor?')">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </form>
-            </td>
-        </tr>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <div class="alert alert-info">No hay profesores registrados.</div>
+        </div>
         {% endfor %}
-    </tbody>
-</table>
+    </div>
+</div>
 
 <script>
 function confirmDeleteAll() {
