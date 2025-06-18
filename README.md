@@ -1,3 +1,5 @@
+# LEER TODO EL README ANTES DE EJECUTAR CUALQUIER COSA.
+---
 # 🚀 Configuración del Proyecto - POC Verificable
 ---
 
@@ -88,55 +90,7 @@ python main.py
 
 ---
 
-## 📊 Scripts de Utilidad
+## COSAS A TENER EN CUENTA.
 
-La aplicación incluye scripts de utilidad para facilitar ciertas tareas:
-
-### 📈 Poblar la Base de Datos
-
-El script `scripts/populate_db.py` permite llenar la base de datos con datos de prueba extensos.
-
-#### Características:
-
-- 20 cursos diferentes
-- 25 profesores
-- 100 estudiantes con datos aleatorios
-- Instancias de cursos para 2021-2024 (semestres 1 y 2)
-- Entre 1 y 5 secciones por instancia
-- Entre 10 y 30 estudiantes por sección
-- Evaluaciones (exámenes, controles, tareas, proyectos)
-- Miles de notas realistas
-
-#### Para ejecutarlo:
-
-1. Asegúrate de que la base de datos MySQL esté en funcionamiento:
-   ```bash
-   cd db && docker-compose up -d
-   ```
-
-2. Desde el directorio raíz del proyecto, ejecuta:
-   ```bash
-   cd scripts
-   python populate_db.py
-   ```
-
-3. Una vez completado, accede a la aplicación en:
-   http://localhost:5000
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### La base de datos sufrió bastantes cambios, recomendamos botar la base de datos y volverla a crear con los pasos de arriba. 
+### No esta de más volver a recordar que se tiene que ejecutar en chrome ya que en algunos navegadore no funciona el tour guído de carga de json's
