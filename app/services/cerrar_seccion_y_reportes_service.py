@@ -46,7 +46,6 @@ class CerrarSeccionYReportesService:
 
             return True, f"Sección {section_id} cerrada exitosamente con {len(notas)} notas calculadas."
         except Exception as e:
-            print("Error en cerrar_seccion:", e)
             return False, "Error inesperado al cerrar la sección."
 
 
@@ -97,7 +96,6 @@ class CerrarSeccionYReportesService:
             pdf.output(path)
             return path
         except Exception as e:
-            print("Error en generar_reporte_notas_seccion:", e)
             return None
 
 
@@ -141,7 +139,6 @@ class CerrarSeccionYReportesService:
             pdf.output(path)
             return path
         except Exception as e:
-            print("Error en generar_reporte_notas_finales:", e)
             return None
 
     def generar_certificado_por_alumno(self, section_id: int, student_id: int):
@@ -211,7 +208,6 @@ class CerrarSeccionYReportesService:
             pdf.output(path)
             return path
         except Exception as e:
-            print("Error en generar_certificado_por_alumno:", e)
             return None
 
     def generar_reporte_resumen_por_estudiante(self, student_id: int):
@@ -286,5 +282,4 @@ class CerrarSeccionYReportesService:
             pdf.output(path)
             return path
         except Exception as e:
-            print("Error en generar_reporte_resumen_por_estudiante:", e)
             return None

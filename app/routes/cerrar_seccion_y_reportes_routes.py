@@ -1,6 +1,17 @@
-from flask import Blueprint, redirect, url_for, flash, request, send_file
+from flask import Blueprint, redirect, flash, request, send_file
 from app.services.cerrar_seccion_y_reportes_service import CerrarSeccionYReportesService
-from app.http_errors import HTTP_BAD_REQUEST
+from app.alertas.cerrar_seccion_y_routes_y_reportes_alerts import (
+    ERROR_CIERRE_SECCION,
+    REPORTE_NOTAS_NO_GENERADO,
+    ERROR_REPORTE_NOTAS,
+    REPORTE_FINALES_NO_GENERADO,
+    ERROR_REPORTE_FINALES,
+    CERTIFICADO_NO_GENERADO,
+    ERROR_CERTIFICADO,
+    CERTIFICADO_PARAMETROS_INVALIDOS,
+    RESUMEN_ESTUDIANTE_NO_GENERADO,
+    ERROR_RESUMEN_ESTUDIANTE
+)
 import os
 
 cerrar_reportar_bp = Blueprint('cerrar_reportar', __name__)
@@ -11,9 +22,8 @@ def cerrar_seccion(section_id):
     try:
         success, message = service.cerrar_seccion(section_id)
         flash(message, "success" if success else "danger")
-    except Exception as e:
-        print("Error inesperado al cerrar sección:", e)
-        flash("Ocurrió un error inesperado al cerrar la sección.", "danger")
+    except Exception:
+        flash(ERROR_CIERRE_SECCION, "danger")
     return redirect('/')
 
 @cerrar_reportar_bp.route('/reporte/notas-seccion/<int:section_id>', methods=['POST'])
@@ -21,12 +31,11 @@ def reporte_notas_seccion(section_id):
     try:
         pdf_path = service.generar_reporte_notas_seccion(section_id)
         if not pdf_path or not os.path.exists(pdf_path):
-            flash("No se pudo generar el reporte de notas de la sección.", "danger")
+            flash(REPORTE_NOTAS_NO_GENERADO, "danger")
             return redirect('/')
         return send_file(pdf_path, as_attachment=True)
-    except Exception as e:
-        print("Error en reporte_notas_seccion:", e)
-        flash("Ocurrió un error al generar el reporte de notas.", "danger")
+    except Exception:
+        flash(ERROR_REPORTE_NOTAS, "danger")
         return redirect('/')
 
 @cerrar_reportar_bp.route('/reporte/finales-seccion/<int:section_id>', methods=['POST'])
@@ -34,12 +43,11 @@ def reporte_finales_seccion(section_id):
     try:
         pdf_path = service.generar_reporte_notas_finales(section_id)
         if not pdf_path or not os.path.exists(pdf_path):
-            flash("No se pudo generar el reporte de notas finales de la sección.", "danger")
+            flash(REPORTE_FINALES_NO_GENERADO, "danger")
             return redirect('/')
         return send_file(pdf_path, as_attachment=True)
-    except Exception as e:
-        print("Error en reporte_finales_seccion:", e)
-        flash("Ocurrió un error al generar el reporte de notas finales.", "danger")
+    except Exception:
+        flash(ERROR_REPORTE_FINALES, "danger")
         return redirect('/')
 
 @cerrar_reportar_bp.route('/reporte/certificado', methods=['POST'])
@@ -49,17 +57,16 @@ def certificado_por_alumno():
         student_id = request.form.get("student_id", type=int)
 
         if not section_id or not student_id:
-            flash("Debe seleccionar un alumno y una sección válida.", "danger")
+            flash(CERTIFICADO_PARAMETROS_INVALIDOS, "danger")
             return redirect('/')
 
         pdf_path = service.generar_certificado_por_alumno(section_id, student_id)
         if not pdf_path or not os.path.exists(pdf_path):
-            flash("No se pudo generar el certificado del estudiante.", "danger")
+            flash(CERTIFICADO_NO_GENERADO, "danger")
             return redirect('/')
         return send_file(pdf_path, as_attachment=True)
-    except Exception as e:
-        print("Error en certificado_por_alumno:", e)
-        flash("Ocurrió un error al generar el certificado del alumno.", "danger")
+    except Exception:
+        flash(ERROR_CERTIFICADO, "danger")
         return redirect('/')
 
 @cerrar_reportar_bp.route('/reporte/resumen-estudiante/<int:student_id>', methods=['POST'])
@@ -67,10 +74,9 @@ def resumen_estudiante(student_id):
     try:
         pdf_path = service.generar_reporte_resumen_por_estudiante(student_id)
         if not pdf_path or not os.path.exists(pdf_path):
-            flash("No se pudo generar el resumen del estudiante.", "danger")
+            flash(RESUMEN_ESTUDIANTE_NO_GENERADO, "danger")
             return redirect(f"/students/{student_id}")
         return send_file(pdf_path, as_attachment=True)
-    except Exception as e:
-        print("Error en resumen_estudiante:", e)
-        flash("Ocurrió un error al generar el resumen del estudiante.", "danger")
+    except Exception:
+        flash(ERROR_RESUMEN_ESTUDIANTE, "danger")
         return redirect(f"/students/{student_id}")

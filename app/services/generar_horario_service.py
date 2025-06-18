@@ -87,5 +87,4 @@ class GenerarHorarioService:
             return True, output
 
         except Exception as e:
-            print("Error al generar horario:", e)
             return False, "Error interno al generar el horario."

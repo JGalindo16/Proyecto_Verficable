@@ -15,7 +15,6 @@ class ProfessorService:
             self.db.commit()
             return {"success": True}
         except Exception as e:
-            print("Error al insertar profesor:", e)
             return {"success": False, "message": "Error al registrar el profesor."}
 
     def get_all_professors(self):
@@ -32,7 +31,6 @@ class ProfessorService:
             self.db.commit()
             return {"success": True}
         except Exception as e:
-            print("Error al actualizar profesor:", e)
             return {"success": False, "message": "Error al actualizar los datos del profesor."}
 
     def delete_professor(self, id: int):
@@ -41,7 +39,6 @@ class ProfessorService:
             self.db.commit()
             return {"success": True}
         except Exception as e:
-            print("Error al eliminar profesor:", e)
             return {"success": False, "message": "Error al eliminar el profesor."}
 
     def delete_all_professors(self):
@@ -50,5 +47,4 @@ class ProfessorService:
             self.db.commit()
             return {"success": True}
         except Exception as e:
-            print("Error al eliminar todos los profesores:", e)
             return {"success": False, "message": "Error al eliminar todos los profesores."}

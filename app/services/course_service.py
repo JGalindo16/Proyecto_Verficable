@@ -24,7 +24,6 @@ class CourseService:
             self.db.commit()
             return {"success": True}
         except Exception as e:
-            print("Error al insertar curso:", e)
             return {"success": False, "message": "Error al insertar en la base de datos"}
 
     def get_all_courses(self):
@@ -58,7 +57,6 @@ class CourseService:
             self.db.commit()
             return {"success": True}
         except Exception as e:
-            print("Error al actualizar curso:", e)
             return {"success": False, "message": "Error al actualizar el curso"}
 
     def delete_course(self, id: int):
@@ -67,7 +65,6 @@ class CourseService:
             self.db.commit()
             return HTTP_OK
         except Exception as e:
-            print("Error al eliminar curso:", e)
             return HTTP_BAD_REQUEST
 
     def delete_all_courses(self):
@@ -76,7 +73,6 @@ class CourseService:
             self.db.commit()
             return {"success": True}
         except Exception as e:
-            print("Error al eliminar todos los cursos:", e)
             return {"success": False, "message": "Error al eliminar todos los cursos."}
 
     def process_json(self, file_obj):
@@ -87,5 +83,4 @@ class CourseService:
             self.db.commit()
             return {"success": True}
         except Exception as e:
-            print("Error al procesar JSON:", e)
             return {"success": False, "message": "Error al procesar el archivo JSON"}

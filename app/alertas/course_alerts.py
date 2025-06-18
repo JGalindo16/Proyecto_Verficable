@@ -1,0 +1,16 @@
+CURSO_CREADO_EXITOSAMENTE = "Curso creado exitosamente."
+CURSO_ACTUALIZADO_EXITOSAMENTE = "Curso actualizado correctamente."
+CURSO_ELIMINADO_EXITOSAMENTE = "Curso eliminado correctamente."
+TODOS_LOS_CURSOS_ELIMINADOS = "Todos los cursos han sido eliminados exitosamente."
+DATOS_CARGADOS_EXITOSAMENTE = "Datos cargados exitosamente."
+
+CURSO_NO_ENCONTRADO = "Curso no encontrado."
+TODOS_LOS_CAMPOS_OBLIGATORIOS = "Todos los campos son obligatorios."
+CAMPOS_NO_PUEDEN_ESTAR_VACIOS = "Los campos no pueden estar vacíos."
+ARCHIVO_INVALIDO = "El archivo debe tener extensión .json"
+
+ERROR_AL_CREAR_CURSO = "Error al crear el curso."
+ERROR_AL_ACTUALIZAR_CURSO = "Error al actualizar el curso."
+ERROR_AL_ELIMINAR_CURSO = "Error al eliminar el curso."
+ERROR_AL_ELIMINAR_TODOS = "Error al eliminar todos los cursos."
+ERROR_AL_CARGAR_DATOS = "Error al cargar los datos desde el archivo JSON."

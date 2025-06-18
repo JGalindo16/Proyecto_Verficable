@@ -2,15 +2,13 @@ import json
 import re
 from datetime import date
 from app.db import DatabaseConnection
+from app.sql_queries.json_queries import *
 
 class JsonUploadService:
-    # Límites y constantes
     _MAX_ITEMS = 100
     
-    # Patrones de validación
     _EMAIL_PATTERN = r"[^@]+@[^@]+\.[^@]+"
-    
-    # Claves JSON
+
     _KEY_ALUMNOS = "alumnos"
     _KEY_PROFESORES = "profesores"
     _KEY_CURSOS = "cursos"
@@ -23,7 +21,6 @@ class JsonUploadService:
     _KEY_TOPICOS = "topicos"
     _KEY_COMBINACION_TOPICOS = "combinacion_topicos"
     
-    # Campos de datos
     _FIELD_NOMBRE = "nombre"
     _FIELD_CORREO = "correo"
     _FIELD_ANIO_INGRESO = "anio_ingreso"
@@ -49,17 +46,14 @@ class JsonUploadService:
     _FIELD_VALORES = "valores"
     _FIELD_OBLIGATORIAS = "obligatorias"
     
-    # Tipos de evaluación
     _EVAL_TYPE_PESO = "peso"
     _EVAL_TYPE_PORCENTAJE = "porcentaje"
     
-    # Rangos de valores
     _MIN_GRADE = 1.0
     _MAX_GRADE = 7.0
     _MIN_SEMESTER = 1
     _MAX_SEMESTER = 2
     
-    # Mensajes de error
     _MSG_NO_JSON_KEY = "El JSON debe contener una lista bajo la clave '{key}'."
     _MSG_INVALID_JSON = "El archivo no es un JSON válido."
     _MSG_PROCESSING_ERROR = "Error al procesar el archivo."
@@ -77,7 +71,6 @@ class JsonUploadService:
     _MSG_SECTION_NOT_EXISTS = "La sección con ID {id} no existe"
     _MSG_GRADE_RANGE = f"La nota debe estar entre {_MIN_GRADE} y {_MAX_GRADE}."
     
-    # Formato de fecha
     _DATE_FORMAT = "{year}-01-01"
     
     def __init__(self):
@@ -88,20 +81,18 @@ class JsonUploadService:
         return re.match(self._EMAIL_PATTERN, email)
 
     def email_exists(self, email):
-        self.cursor.execute("SELECT 1 FROM students WHERE email = %s", (email,))
+        self.cursor.execute(CHECK_EMAIL_EXISTS, (email,))
         return self.cursor.fetchone() is not None
 
     def load_alumnos(self, file_storage):
         try:
             raw_data = json.load(file_storage)
 
-            # Validar que existe la clave "alumnos" y es una lista
             if self._KEY_ALUMNOS not in raw_data or not isinstance(raw_data[self._KEY_ALUMNOS], list):
                 return False, self._MSG_NO_JSON_KEY.format(key=self._KEY_ALUMNOS)
 
             alumnos = raw_data[self._KEY_ALUMNOS]
             
-            # Validar tamaño máximo
             if len(alumnos) > self._MAX_ITEMS:
                 return False, f"El archivo contiene {len(alumnos)} alumnos. Máximo permitido: {self._MAX_ITEMS}."
             
@@ -113,9 +104,8 @@ class JsonUploadService:
                     nombre = alumno.get(self._FIELD_NOMBRE)
                     correo = alumno.get(self._FIELD_CORREO)
                     anio_ingreso = alumno.get(self._FIELD_ANIO_INGRESO)
-                    id_ = alumno.get(self._FIELD_ID)  # Opcional
+                    id_ = alumno.get(self._FIELD_ID)
 
-                    # Validaciones
                     if not isinstance(nombre, str) or not nombre.strip():
                         raise ValueError(self._MSG_INVALID_NAME)
 
@@ -129,18 +119,9 @@ class JsonUploadService:
                         raise ValueError(self._MSG_INVALID_ID)
 
                     if id_:
-                        # Intentar insertar con ID si viene
-                        self.cursor.execute("""
-                            INSERT INTO students (student_id, name, email, admission_date)
-                            VALUES (%s, %s, %s, %s)
-                            ON DUPLICATE KEY UPDATE name = VALUES(name), email = VALUES(email)
-                        """, (id_, nombre, correo, self._DATE_FORMAT.format(year=anio_ingreso)))
+                        self.cursor.execute(INSERT_STUDENT_WITH_ID, (id_, nombre, correo, self._DATE_FORMAT.format(year=anio_ingreso)))
                     else:
-                        # Insertar sin ID (autoincremental)
-                        self.cursor.execute("""
-                            INSERT INTO students (name, email, admission_date)
-                            VALUES (%s, %s, %s)
-                        """, (nombre, correo, self._DATE_FORMAT.format(year=anio_ingreso)))
+                        self.cursor.execute(INSERT_STUDENT, (nombre, correo, self._DATE_FORMAT.format(year=anio_ingreso)))
 
                     insertados += 1
 
@@ -170,7 +151,6 @@ class JsonUploadService:
 
             profesores = raw_data[self._KEY_PROFESORES]
             
-            # Validar tamaño máximo
             if len(profesores) > self._MAX_ITEMS:
                 return False, f"El archivo contiene {len(profesores)} profesores. Máximo permitido: {self._MAX_ITEMS}."
             
@@ -183,7 +163,6 @@ class JsonUploadService:
                     correo = prof.get(self._FIELD_CORREO)
                     id_ = prof.get(self._FIELD_ID)
 
-                    # Validaciones
                     if not isinstance(nombre, str) or not nombre.strip():
                         raise ValueError(self._MSG_INVALID_NAME)
 
@@ -194,16 +173,9 @@ class JsonUploadService:
                         raise ValueError(self._MSG_INVALID_ID)
 
                     if id_:
-                        self.cursor.execute("""
-                            INSERT INTO professors (professor_id, name, email)
-                            VALUES (%s, %s, %s)
-                            ON DUPLICATE KEY UPDATE name = VALUES(name), email = VALUES(email)
-                        """, (id_, nombre, correo))
+                        self.cursor.execute(INSERT_PROFESSOR_WITH_ID, (id_, nombre, correo))
                     else:
-                        self.cursor.execute("""
-                            INSERT INTO professors (name, email)
-                            VALUES (%s, %s)
-                        """, (nombre, correo))
+                        self.cursor.execute(INSERT_PROFESSOR, (nombre, correo))
 
                     insertados += 1
 
@@ -233,7 +205,6 @@ class JsonUploadService:
 
             cursos = raw_data[self._KEY_CURSOS]
             
-            # Validar tamaño máximo
             if len(cursos) > self._MAX_ITEMS:
                 return False, f"El archivo contiene {len(cursos)} cursos. Máximo permitido: {self._MAX_ITEMS}."
             
@@ -263,36 +234,24 @@ class JsonUploadService:
                     if not isinstance(requisitos, list):
                         raise ValueError(self._MSG_INVALID_PREREQ)
 
-                    # Insertar curso
                     if id_:
-                        self.cursor.execute("""
-                            INSERT INTO courses (course_id, code, name, creditos)
-                            VALUES (%s, %s, %s, %s)
-                            ON DUPLICATE KEY UPDATE code = VALUES(code), name = VALUES(name), creditos = VALUES(creditos)
-                        """, (id_, codigo, name, creditos))
+                        self.cursor.execute(INSERT_COURSE_WITH_ID, (id_, codigo, name, creditos))
                     else:
-                        self.cursor.execute("""
-                            INSERT INTO courses (code, name, creditos)
-                            VALUES (%s, %s, %s)
-                        """, (codigo, name, creditos))
+                        self.cursor.execute(INSERT_COURSE, (codigo, name, creditos))
                         id_ = self.cursor.lastrowid
 
-                    # Prerrequisitos por código
                     for code in requisitos:
                         if not isinstance(code, str) or not code.strip():
                             raise ValueError("Código de prerrequisito inválido")
 
-                        self.cursor.execute("SELECT course_id FROM courses WHERE code = %s", (code,))
+                        self.cursor.execute(SELECT_PREREQUISITE_ID_BY_CODE, (code,))
                         result = self.cursor.fetchone()
                         if not result:
                             raise ValueError(f"El prerrequisito '{code}' no existe en la base de datos")
 
                         prereq_id = result['course_id']
 
-                        self.cursor.execute("""
-                            INSERT IGNORE INTO course_prerequisites (course_id, prerequisite_id)
-                            VALUES (%s, %s)
-                        """, (id_, prereq_id))
+                        self.cursor.execute(INSERT_COURSE_PREREQUISITE, (id_, prereq_id))
 
                     insertados += 1
 
@@ -330,7 +289,6 @@ class JsonUploadService:
             if not isinstance(instancias, list):
                 return False, "El campo 'instancias' debe ser una lista."
 
-            # Validar tamaño máximo
             if len(instancias) > self._MAX_ITEMS:
                 return False, f"El archivo contiene {len(instancias)} instancias. Máximo permitido: {self._MAX_ITEMS}."
 
@@ -344,7 +302,7 @@ class JsonUploadService:
                     if not isinstance(curso_id, int):
                         raise ValueError("El campo 'curso_id' debe ser un entero.")
 
-                    self.cursor.execute("SELECT 1 FROM courses WHERE course_id = %s", (curso_id,))
+                    self.cursor.execute(CHECK_COURSE_EXISTS, (curso_id,))
                     if not self.cursor.fetchone():
                         raise ValueError(self._MSG_COURSE_NOT_EXISTS.format(id=curso_id))
 
@@ -352,16 +310,9 @@ class JsonUploadService:
                         raise ValueError("El campo 'id' debe ser entero o no estar presente.")
 
                     if id_:
-                        self.cursor.execute("""
-                            INSERT INTO course_instances (instance_id, course_id, year, semester)
-                            VALUES (%s, %s, %s, %s)
-                            ON DUPLICATE KEY UPDATE course_id=VALUES(course_id), year=VALUES(year), semester=VALUES(semester)
-                        """, (id_, curso_id, anio, str(semestre)))
+                        self.cursor.execute(INSERT_INSTANCE_WITH_ID, (id_, curso_id, anio, str(semestre)))
                     else:
-                        self.cursor.execute("""
-                            INSERT INTO course_instances (course_id, year, semester)
-                            VALUES (%s, %s, %s)
-                        """, (curso_id, anio, str(semestre)))
+                        self.cursor.execute(INSERT_INSTANCE, (curso_id, anio, str(semestre)))
 
                     insertados += 1
                 except Exception as e:
@@ -390,7 +341,6 @@ class JsonUploadService:
 
             inscripciones = raw_data[self._KEY_ALUMNOS_SECCION]
             
-            # Validar tamaño máximo
             if len(inscripciones) > self._MAX_ITEMS:
                 return False, f"El archivo contiene {len(inscripciones)} inscripciones. Máximo permitido: {self._MAX_ITEMS}."
             
@@ -405,21 +355,15 @@ class JsonUploadService:
                     if not isinstance(seccion_id, int) or not isinstance(alumno_id, int):
                         raise ValueError("IDs inválidos (deben ser enteros)")
 
-                    # Verificar existencia de section
-                    self.cursor.execute("SELECT 1 FROM sections WHERE section_id = %s", (seccion_id,))
+                    self.cursor.execute(CHECK_SECTION_EXISTS, (seccion_id,))
                     if not self.cursor.fetchone():
                         raise ValueError(self._MSG_SECTION_NOT_EXISTS.format(id=seccion_id))
 
-                    # Verificar existencia de student
-                    self.cursor.execute("SELECT 1 FROM students WHERE student_id = %s", (alumno_id,))
+                    self.cursor.execute(CHECK_STUDENT_EXISTS, (alumno_id,))
                     if not self.cursor.fetchone():
                         raise ValueError(self._MSG_STUDENT_NOT_EXISTS.format(id=alumno_id))
 
-                    # Insertar inscripción
-                    self.cursor.execute("""
-                        INSERT INTO enrollments (student_id, section_id)
-                        VALUES (%s, %s)
-                    """, (alumno_id, seccion_id))
+                    self.cursor.execute(INSERT_ENROLLMENT, (alumno_id, seccion_id))
 
                     insertados += 1
 
@@ -449,7 +393,6 @@ class JsonUploadService:
 
             salas = raw_data[self._KEY_SALAS]
             
-            # Validar tamaño máximo
             if len(salas) > self._MAX_ITEMS:
                 return False, f"El archivo contiene {len(salas)} salas. Máximo permitido: {self._MAX_ITEMS}."
             
@@ -472,16 +415,9 @@ class JsonUploadService:
                         raise ValueError("ID inválido (debe ser entero o nulo)")
 
                     if id_:
-                        self.cursor.execute("""
-                            INSERT INTO classrooms (classroom_id, name, capacity)
-                            VALUES (%s, %s, %s)
-                            ON DUPLICATE KEY UPDATE name = VALUES(name), capacity = VALUES(capacity)
-                        """, (id_, nombre, capacidad))
+                        self.cursor.execute(INSERT_CLASSROOM_WITH_ID, (id_, nombre, capacidad))
                     else:
-                        self.cursor.execute("""
-                            INSERT INTO classrooms (name, capacity)
-                            VALUES (%s, %s)
-                        """, (nombre, capacidad))
+                        self.cursor.execute(INSERT_CLASSROOM, (nombre, capacidad))
 
                     insertados += 1
 
@@ -511,7 +447,6 @@ class JsonUploadService:
 
             secciones = data[self._KEY_SECCIONES]
             
-            # Validar tamaño máximo
             if len(secciones) > self._MAX_ITEMS:
                 return False, f"El archivo contiene {len(secciones)} secciones. Máximo permitido: {self._MAX_ITEMS}."
             
@@ -531,19 +466,15 @@ class JsonUploadService:
                     numero = int(seccion.get(self._FIELD_ID))
                     profesor_id = int(seccion.get(self._FIELD_PROFESOR_ID))
 
-                    # Verificaciones
-                    self.cursor.execute("SELECT 1 FROM course_instances WHERE instance_id = %s", (instance_id,))
+                    self.cursor.execute(CHECK_INSTANCE_EXISTS, (instance_id,))
                     if not self.cursor.fetchone():
                         raise ValueError(f"Instancia con ID {instance_id} no existe")
 
-                    self.cursor.execute("SELECT 1 FROM professors WHERE professor_id = %s", (profesor_id,))
+                    self.cursor.execute(CHECK_PROFESSOR_EXISTS, (profesor_id,))
                     if not self.cursor.fetchone():
                         raise ValueError(f"Profesor con ID {profesor_id} no existe")
 
-                    self.cursor.execute("""
-                        INSERT INTO sections (instance_id, number, professor_id)
-                        VALUES (%s, %s, %s)
-                    """, (instance_id, numero, profesor_id))
+                    self.cursor.execute(INSERT_SECTION, (instance_id, numero, profesor_id))
                     section_id = self.cursor.lastrowid
 
                     evaluacion = seccion.get(self._KEY_EVALUACION)
@@ -570,10 +501,7 @@ class JsonUploadService:
                             if topico_id not in topicos:
                                 raise ValueError(f"No hay descripción para el tópico con id {topico_id}")
 
-                            self.cursor.execute("""
-                                INSERT INTO evaluations (section_id, type, weight, optional)
-                                VALUES (%s, %s, %s, %s)
-                            """, (section_id, nombre, peso_normalizado, False))
+                            self.cursor.execute(INSERT_EVALUATION, (section_id, nombre, peso_normalizado, False))
                             evaluation_id = self.cursor.lastrowid
 
                             topico = topicos[topico_id]
@@ -591,10 +519,7 @@ class JsonUploadService:
                                 instancias_pesos = round_with_correction([v / 100 for v in valores])
 
                             for j in range(cantidad):
-                                self.cursor.execute("""
-                                    INSERT INTO evaluation_instances (evaluation_id, name, specific_weight, mandatory)
-                                    VALUES (%s, %s, %s, %s)
-                                """, (
+                                self.cursor.execute(INSERT_EVALUATION_INSTANCE, (
                                     evaluation_id,
                                     f"{nombre} Instancia {j + 1}",
                                     instancias_pesos[j],
@@ -627,7 +552,6 @@ class JsonUploadService:
 
             notas = data[self._KEY_NOTAS]
             
-            # Validar tamaño máximo
             if len(notas) > self._MAX_ITEMS:
                 return False, f"El archivo contiene {len(notas)} notas. Máximo permitido: {self._MAX_ITEMS}."
             
@@ -649,18 +573,11 @@ class JsonUploadService:
                     if not (self._MIN_GRADE <= nota <= self._MAX_GRADE):
                         raise ValueError(self._MSG_GRADE_RANGE)
 
-                    # Verificar que el alumno exista
                     self.cursor.execute("SELECT 1 FROM students WHERE student_id = %s", (alumno_id,))
                     if not self.cursor.fetchone():
                         raise ValueError(f"Alumno con ID {alumno_id} no existe")
 
-                    # Verificar que exista la instancia de evaluación
-                    self.cursor.execute("""
-                        SELECT ei.instance_eval_id, e.section_id
-                        FROM evaluation_instances ei
-                        JOIN evaluations e ON ei.evaluation_id = e.evaluation_id
-                        WHERE e.evaluation_id = %s AND ei.name LIKE %s
-                    """, (topico_id, f"%Instancia {instancia}"))
+                    self.cursor.execute(SELECT_INSTANCE_EVAL_AND_SECTION, (topico_id, f"%Instancia {instancia}"))
                     result = self.cursor.fetchone()
                     if not result:
                         raise ValueError(f"No existe la instancia {instancia} para el tópico {topico_id}")
@@ -668,22 +585,14 @@ class JsonUploadService:
                     instance_eval_id = result["instance_eval_id"]
                     section_id = result["section_id"]
 
-                    # Verificar si el alumno está inscrito en la sección correspondiente
-                    self.cursor.execute("""
-                        SELECT enrollment_id FROM enrollments
-                        WHERE student_id = %s AND section_id = %s
-                    """, (alumno_id, section_id))
+                    self.cursor.execute(SELECT_ENROLLMENT_ID, (alumno_id, section_id))
                     result = self.cursor.fetchone()
                     if not result:
                         raise ValueError(f"El alumno {alumno_id} no está inscrito en la sección {section_id}")
                     
                     enrollment_id = result["enrollment_id"]
 
-                    # Insertar la nota
-                    self.cursor.execute("""
-                        INSERT INTO grades (enrollment_id, instance_eval_id, score)
-                        VALUES (%s, %s, %s)
-                    """, (enrollment_id, instance_eval_id, nota))
+                    self.cursor.execute(INSERT_GRADE, (enrollment_id, instance_eval_id, nota))
 
                     insertadas += 1
 

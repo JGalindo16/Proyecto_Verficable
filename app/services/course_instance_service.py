@@ -21,7 +21,6 @@ class CourseInstanceService:
             self.db.commit()
             return {"success": True}
         except Exception as e:
-            print("Error al insertar instancia:", e)
             return {"success": False, "message": str(e)}
 
     def get_instances_by_course(self, course_id: int):
@@ -34,7 +33,6 @@ class CourseInstanceService:
             self.db.commit()
             return HTTP_OK
         except Exception as e:
-            print("Error al eliminar instancia:", e)
             return HTTP_BAD_REQUEST
 
     def update_instance(self, instance_id: int, year: int, semester: str):
@@ -57,7 +55,6 @@ class CourseInstanceService:
             self.db.commit()
             return {"success": True}
         except Exception as e:
-            print("Error al actualizar instancia:", e)
             return {"success": False, "message": str(e)}
 
     def get_instance_by_id(self, instance_id: int):
@@ -85,7 +82,6 @@ class CourseInstanceService:
             self.db.commit()
             return {"success": True, "id": self.cursor.lastrowid}
         except Exception as e:
-            print("Error al insertar instancia de evaluación:", e)
             return {"success": False, "message": str(e)}
 
     def update_evaluation_instance(self, instance_eval_id, name, specific_weight, mandatory=None):
@@ -123,7 +119,6 @@ class CourseInstanceService:
             return {"success": True}
 
         except Exception as e:
-            print("Error al actualizar instancia de evaluación:", e)
             return {"success": False, "message": str(e)}
 
     def redistribute_weights_after_delete(self, evaluation_id):
@@ -138,5 +133,4 @@ class CourseInstanceService:
             self.db.commit()
             return {"success": True}
         except Exception as e:
-            print("Error al redistribuir pesos:", e)
             return {"success": False, "message": str(e)}

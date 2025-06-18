@@ -30,7 +30,6 @@ class EvaluationService:
             self.db.commit()
             return {"success": True}
         except Exception as e:
-            print("Error al insertar evaluación con notas 0:", e)
             return {"success": False, "message": "Error interno al crear evaluación."}
 
     def get_all_evaluations_by_section(self, section_id: int):
@@ -51,7 +50,6 @@ class EvaluationService:
             self.db.commit()
             return {"success": True}
         except Exception as e:
-            print("Error al actualizar evaluación:", e)
             return {"success": False, "message": "Error interno al actualizar evaluación."}
 
     def delete_evaluation(self, evaluation_id: int):
@@ -60,7 +58,6 @@ class EvaluationService:
             self.db.commit()
             return {"success": True}
         except Exception as e:
-            print("Error al eliminar evaluación:", e)
             return {"success": False, "message": "Error interno al eliminar evaluación."}
 
     def get_total_weight_by_section(self, section_id: int):
