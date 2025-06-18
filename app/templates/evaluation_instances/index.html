@@ -3,125 +3,147 @@
 {% block title %}Instancias de Evaluación{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Instancias de Evaluación para Evaluación #{{ evaluation_id }}</h2>
+<div class="container py-4">
+    <div class="card card-action p-4 mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="fw-bold mb-0" style="color: var(--title-color);">Instancias de Evaluación #{{ evaluation_id }}</h3>
+                
+                {% if error %}
+                    <div class="alert alert-danger mt-3">{{ error }}</div>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="/" class="btn btn-courses btn-action">
+                    <i class="bi bi-arrow-left"></i> Volver al home
+                </a>
+            </div>
+        </div>
+    </div>
 
-{% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
-{% endif %}
+    <div class="text-center mb-4">
+        <button class="btn btn-success btn-action" data-bs-toggle="modal" data-bs-target="#addInstanceModal">
+            <i class="bi bi-plus-circle"></i> Agregar Instancia
+        </button>
+    </div>
 
-<table class="table align-middle text-center">
-    <thead class="table-light">
-        <tr>
-            <th>Nombre</th>
-            <th>Peso</th>
-            <th>Obligatoria</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for inst in instances %}
-        <tr>
-            <td>{{ inst.name }}</td>
-            <td>{{ '%.2f'|format(inst.specific_weight * 100) }}%</td>
-            <td>{{ 'Sí' if inst.mandatory else 'No' }}</td>
-            <td>
-                <div class="d-flex justify-content-center gap-2">
-                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ inst.id }}">Editar</button>
-                    <form action="/evaluations/{{ evaluation_id }}/instances/{{ inst.id }}/delete" method="POST">
-                        <button class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar esta instancia?')">Eliminar</button>
+    <div class="card card-action p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold mb-0" style="color: var(--title-color);">Lista de Instancias</h4>
+            <span class="badge bg-light-blue text-dark">{{ instances|length }} instancias</span>
+        </div>
+        
+        {% if instances %}
+            {% for inst in instances %}
+            <div class="d-flex justify-content-between align-items-center py-3 {% if not loop.last %}border-bottom{% endif %}">
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-light-blue text-dark me-3">{{ inst.name }}</span>
+                    <div>
+                        <h6 class="mb-1 fw-bold" style="color: var(--title-color);">Peso: {{ '%.2f'|format(inst.specific_weight * 100) }}%</h6>
+                        <div class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>{{ 'Obligatoria' if inst.mandatory else 'No obligatoria' }}
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ inst.id }}">
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    <form action="/evaluations/{{ evaluation_id }}/instances/{{ inst.id }}/delete" method="POST" class="d-inline">
+                        <button class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar esta instancia?')">
+                            <i class="bi bi-trash"></i> Eliminar
+                        </button>
                     </form>
                 </div>
-            </td>
-        </tr>
-
-        <div class="modal fade" id="editModal{{ inst.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ inst.id }}" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <form action="/evaluations/{{ evaluation_id }}/instances/{{ inst.id }}/edit" method="POST">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="editModalLabel{{ inst.id }}">Editar Instancia</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="name">Nombre</label>
-                        <input type="text" name="name" class="form-control" value="{{ inst.name }}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="specific_weight">Peso (%)</label>
-                        <input type="number" name="specific_weight" class="form-control weight-input" step="0.1" min="0"
-                               max="{{ 100.1 - total_weight + (inst.specific_weight * 100) }}"
-                               value="{{ inst.specific_weight * 100 }}"
-                               data-original="{{ inst.specific_weight * 100 }}"
-                               required>
-                        <small class="form-text text-muted">
-                            La suma de pesos no puede exceder el 100%.
-                        </small>
-                    </div>
-                    <div class="mb-3">
-                        <label for="mandatory">¿Obligatoria?</label>
-                        <select name="mandatory" class="form-select">
-                            <option value="0" {% if not inst.mandatory %}selected{% endif %}>No</option>
-                            <option value="1" {% if inst.mandatory %}selected{% endif %}>Sí</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                  <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                </div>
-              </form>
             </div>
-          </div>
-        </div>
+
+            <div class="modal fade" id="editModal{{ inst.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ inst.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form action="/evaluations/{{ evaluation_id }}/instances/{{ inst.id }}/edit" method="POST">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editModalLabel{{ inst.id }}">Editar Instancia</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Nombre</label>
+                                    <input type="text" name="name" class="form-control" value="{{ inst.name }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="specific_weight" class="form-label">Peso (%)</label>
+                                    <input type="number" name="specific_weight" class="form-control weight-input" step="0.1" min="0"
+                                           max="{{ 100.1 - total_weight + (inst.specific_weight * 100) }}"
+                                           value="{{ inst.specific_weight * 100 }}"
+                                           data-original="{{ inst.specific_weight * 100 }}"
+                                           required>
+                                    <small class="form-text text-muted">
+                                        La suma de pesos no puede exceder el 100%.
+                                    </small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="mandatory" class="form-label">¿Obligatoria?</label>
+                                    <select name="mandatory" class="form-select">
+                                        <option value="0" {% if not inst.mandatory %}selected{% endif %}>No</option>
+                                        <option value="1" {% if inst.mandatory %}selected{% endif %}>Sí</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         {% else %}
-        <tr><td colspan="4">No hay instancias registradas.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-
-<button class="btn btn-success mb-4" data-bs-toggle="modal" data-bs-target="#addInstanceModal">Agregar Instancia</button>
-<a href="/" class="btn btn-secondary mb-4">Volver al home</a>
-
-<div class="modal fade" id="addInstanceModal" tabindex="-1" aria-labelledby="addInstanceModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form action="/evaluations/{{ evaluation_id }}/instances" method="POST">
-        <div class="modal-header">
-          <h5 class="modal-title" id="addInstanceModalLabel">Agregar Instancia</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
-        <div class="modal-body">
-            <div class="mb-3">
-                <label for="name">Nombre</label>
-                <input type="text" name="name" class="form-control" required>
+            <div class="text-center py-4">
+                <div class="alert alert-info">No hay instancias registradas.</div>
             </div>
-            <div class="mb-3">
-                <label for="specific_weight">Peso (%)</label>
-                <input type="number" name="specific_weight" class="form-control weight-input" step="0.1" min="0"
-                       max="{{ 100.1 - total_weight }}"
-                       data-original="0"
-                       required>
-                <small class="form-text text-muted">
-                    La suma de pesos no puede exceder el 100%.
-                </small>
-            </div>
-            <div class="mb-3">
-                <label for="mandatory">¿Obligatoria?</label>
-                <select name="mandatory" class="form-select">
-                    <option value="0">No</option>
-                    <option value="1">Sí</option>
-                </select>
-            </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Crear Instancia</button>
-        </div>
-      </form>
+        {% endif %}
     </div>
-  </div>
+
+    <div class="modal fade" id="addInstanceModal" tabindex="-1" aria-labelledby="addInstanceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/evaluations/{{ evaluation_id }}/instances" method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addInstanceModalLabel">Agregar Instancia</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nombre</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="specific_weight" class="form-label">Peso (%)</label>
+                            <input type="number" name="specific_weight" class="form-control weight-input" step="0.1" min="0"
+                                   max="{{ 100.1 - total_weight }}"
+                                   data-original="0"
+                                   required>
+                            <small class="form-text text-muted">
+                                La suma de pesos no puede exceder el 100%.
+                            </small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="mandatory" class="form-label">¿Obligatoria?</label>
+                            <select name="mandatory" class="form-select">
+                                <option value="0">No</option>
+                                <option value="1">Sí</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Crear Instancia</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
