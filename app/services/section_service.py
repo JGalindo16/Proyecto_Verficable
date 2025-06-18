@@ -1,5 +1,3 @@
-# app/services/section_service.py
-
 from app.db import DatabaseConnection
 from app.http_errors import HTTP_OK, HTTP_BAD_REQUEST
 from app.sql_queries.section_queries import *

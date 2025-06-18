@@ -1,5 +1,3 @@
-# app/services/professor_service.py
-
 from app.db import DatabaseConnection
 from app.http_errors import HTTP_OK, HTTP_BAD_REQUEST
 import app.sql_queries.professor_queries as q
