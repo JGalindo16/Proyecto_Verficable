@@ -1,41 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    {% include 'global/head.html' %}
-    <title>Crear Estudiante</title>
-</head>
-<body>
-    {% include 'global/navbar.html' %}
-    <div class="container py-4 d-flex justify-content-center">
-        <div class="card card-action p-4" style="max-width: 400px; width: 100%;">
-            <h3 class="fw-bold mb-3 text-center" style="color: var(--title-color);">Crear Estudiante</h3>
-            <form action="/students" method="POST">
-                <div class="mb-3">
-                    <label for="name" class="form-label">Nombre</label>
-                    <input type="text" class="form-control" id="name" name="name"
-                           value="{{ form.name }}" placeholder="Ingrese el nombre del estudiante" required>
-                </div>
-                <div class="mb-3">
-                    <label for="email" class="form-label">Correo electrónico</label>
-                    <input type="email" class="form-control" id="email" name="email"
-                           value="{{ form.email }}" placeholder="Ingrese el email del estudiante" required>
-                </div>
-                <div class="mb-4">
-                    <label for="admission_date" class="form-label">Fecha de admisión</label>
-                    <input type="date" class="form-control" id="admission_date" name="admission_date" value="{{ form.admission_date }}" required>
-                </div>
-                {% if error %}
-                    <div class="alert alert-danger mt-2">{{ error }}</div>
-                {% endif %}
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-courses btn-action">
-                        <i class="bi bi-plus-circle"></i> Crear Estudiante
-                    </button>
-                    <a href="/students" class="btn btn-secondary btn-action">Cancelar</a>
-                </div>
-            </form>
-        </div>
+{% extends "global/base.html" %}
+
+{% block title %}Crear Estudiante{% endblock %}
+
+{% block content %}
+<div class="container py-4 d-flex justify-content-center">
+    <div class="card card-action p-4" style="max-width: 400px; width: 100%;">
+        <h3 class="fw-bold mb-3 text-center" style="color: var(--title-color);">Crear Estudiante</h3>
+        <form action="/students" method="POST">
+            <div class="mb-3">
+                <label for="name" class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="name" name="name"
+                       value="{{ form.name }}" placeholder="Ingrese el nombre del estudiante" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Correo electrónico</label>
+                <input type="email" class="form-control" id="email" name="email"
+                       value="{{ form.email }}" placeholder="Ingrese el email del estudiante" required>
+            </div>
+            <div class="mb-4">
+                <label for="admission_date" class="form-label">Fecha de admisión</label>
+                <input type="date" class="form-control" id="admission_date" name="admission_date" value="{{ form.admission_date }}" required>
+            </div>
+            {% if error %}
+                <div class="alert alert-danger mt-2">{{ error }}</div>
+            {% endif %}
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-courses btn-action">
+                    <i class="bi bi-plus-circle"></i> Crear Estudiante
+                </button>
+                <a href="/students" class="btn btn-secondary btn-action">Cancelar</a>
+            </div>
+        </form>
     </div>
-    {% include 'global/scripts.html' %}
-</body>
-</html>
+</div>
+{% endblock %}
