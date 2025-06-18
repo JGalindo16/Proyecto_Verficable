@@ -1,21 +1,35 @@
 {% extends "global/base.html" %}
 
-{% block title %}Instancia del Curso{% endblock %}
+{% block title %}Estudiante #{{ data.id }}{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2>Estudiante #{{ data.id }}</h2>
-    <p><strong>Nombre:</strong> {{ data.name }}</p>
-    <p><strong>Email:</strong> {{ data.email }}</p>
-    <p><strong>Fecha de admisión:</strong> {{ data.admission_date }}</p>
-
-    <a href="/students" class="btn btn-primary">Volver</a>
-    <a href="/students/{{ data.id }}/edit" class="btn btn-warning">Editar</a>
-    <form action="/students/{{ data.id }}/delete" method="POST" style="display:inline;">
-        <button type="submit" class="btn btn-danger" onclick="return confirm('¿Eliminar este estudiante?')">Eliminar</button>
-    </form>
-    <form action="/reporte/resumen-estudiante/{{ data.id }}" method="POST" style="display:inline;">
-        <button type="submit" class="btn btn-info">Descargar resumen académico</button>
-    </form>
+<div class="container py-4">
+    <div class="card card-action p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3 class="fw-bold mb-0" style="color: var(--title-color);">Estudiante #{{ data.id }}</h3>
+            <span class="badge bg-light-blue text-dark fs-6">{{ data.name }}</span>
+        </div>
+        <h5 class="mb-2"><strong>Nombre:</strong> {{ data.name }}</h5>
+        <h5 class="mb-2"><strong>Email:</strong> {{ data.email }}</h5>
+        <h5 class="mb-2"><strong>Fecha de admisión:</strong> {{ data.admission_date }}</h5>
+        <div class="d-flex gap-2 mt-3">
+            <a href="/students" class="btn btn-courses btn-action">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+            <a href="/students/{{ data.id }}/edit" class="btn btn-warning btn-action">
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+            <form action="/students/{{ data.id }}/delete" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-danger btn-action" onclick="return confirm('¿Eliminar este estudiante?')">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+            </form>
+            <form action="/reporte/resumen-estudiante/{{ data.id }}" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-info btn-action">
+                    <i class="bi bi-download"></i> Descargar resumen
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}
