@@ -72,6 +72,12 @@ class CourseService:
         try:
             self.cursor.execute(q.DELETE_ALL_COURSES)
             self.cursor.execute("ALTER TABLE courses AUTO_INCREMENT = 1")
+            self.cursor.execute("ALTER TABLE course_instances AUTO_INCREMENT = 1")
+            self.cursor.execute("ALTER TABLE sections AUTO_INCREMENT = 1")
+            self.cursor.execute("ALTER TABLE evaluations AUTO_INCREMENT = 1")
+            self.cursor.execute("ALTER TABLE evaluation_instances AUTO_INCREMENT = 1")
+            self.cursor.execute("ALTER TABLE enrollments AUTO_INCREMENT = 1")
+            self.cursor.execute("ALTER TABLE grades AUTO_INCREMENT = 1")
             self.db.commit()
             return {"success": True}
         except Exception as e:

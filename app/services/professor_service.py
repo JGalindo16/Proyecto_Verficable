@@ -43,6 +43,7 @@ class ProfessorService:
         try:
             self.cursor.execute(q.DELETE_ALL_PROFESSORS)
             self.cursor.execute("ALTER TABLE professors AUTO_INCREMENT = 1")
+            self.cursor.execute("ALTER TABLE sections AUTO_INCREMENT = 1")
             self.db.commit()
             return {"success": True}
         except Exception as e:
