@@ -50,6 +50,7 @@ class StudentService:
     def delete_all_students(self):
         try:
             self.cursor.execute(DELETE_ALL_STUDENTS)
+            self.cursor.execute("ALTER TABLE students AUTO_INCREMENT = 1")
             self.db.commit()
             return {"success": True, "message": TODOS_LOS_ESTUDIANTES_ELIMINADOS, "status_code": HTTP_OK}
         except:
