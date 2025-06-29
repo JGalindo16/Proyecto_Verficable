@@ -70,22 +70,33 @@ def view_instance(course_id, instance_id):
 
     instance = instance_service.get_instance_by_id(instance_id)
     course = course_service.get_course_by_id(course_id)
-    professors = section_service.get_all_professors()
-    students = section_service.get_all_students()
-
+    
     if not instance or not course:
         flash(alerts.INSTANCIA_O_CURSO_NO_ENCONTRADO, "error")
         return redirect('/')
 
-    sections = section_service.get_sections_by_instance(instance_id)
-    for section in sections:
-        section['enrolled_student_ids'] = section_service.get_enrolled_student_ids(section['id'])
-
+    context_data = prepare_instance_context(section_service, instance_id)
+    
     return render_template(
         'course_instances/show.html',
         instance=instance,
         course=course,
-        sections=sections,
-        professors=professors,
-        students=students
+        **context_data
     )
+
+def prepare_instance_context(section_service, instance_id):
+    professors = section_service.get_all_professors()
+    students = section_service.get_all_students()
+    sections = get_sections_with_enrollments(section_service, instance_id)
+    
+    return {
+        'sections': sections,
+        'professors': professors,
+        'students': students
+    }
+
+def get_sections_with_enrollments(section_service, instance_id):
+    sections = section_service.get_sections_by_instance(instance_id)
+    for section in sections:
+        section['enrolled_student_ids'] = section_service.get_enrolled_student_ids(section['id'])
+    return sections
