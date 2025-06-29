@@ -1,7 +1,13 @@
 from flask import Blueprint, render_template, request, redirect, flash
 from app.services.student_service import StudentService
 from app.http_errors import HTTP_BAD_REQUEST
-from app.alertas.students_alerts import *
+from app.alertas.students_alerts import (
+    ESTUDIANTES_NO_ENCONTRADO,
+    TODOS_LOS_CAMPOS_OBLIGATORIOS,
+    ESTUDIANTE_CREADO_EXITOSAMENTE,
+    ESTUDIANTE_ELIMINADO_EXITOSAMENTE,
+    TODOS_LOS_ESTUDIANTES_ELIMINADOS
+)
 
 student_bp = Blueprint('student', __name__)
 service = StudentService()
