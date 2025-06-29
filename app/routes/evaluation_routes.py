@@ -1,4 +1,3 @@
-# routes/evaluation_routes.py
 from flask import Blueprint, render_template, request, redirect, flash
 from app.services.evaluation_service import EvaluationService
 from app.http_errors import HTTP_BAD_REQUEST
@@ -15,25 +14,15 @@ def index(section_id):
 @evaluation_bp.route('/sections/<int:section_id>/evaluations', methods=['POST'])
 def create(section_id):
     try:
-        type_ = request.form.get("type", "").strip()
-        weight = float(request.form.get("weight", 0)) / 100
-        optional = bool(int(request.form.get("optional", 0)))
-
-        if not type_:
-            flash("El tipo de evaluación es obligatorio.", "danger")
+        evaluation_data = extract_evaluation_data()
+        
+        validation_error = validate_evaluation_data(evaluation_data, section_id)
+        if validation_error:
+            flash(validation_error, "danger")
             return redirect(f"/sections/{section_id}/evaluations")
-
-        current = service.get_total_weight_by_section(section_id)
-        if current + weight > 1.01:
-            flash("El peso total excede el 100%.", "danger")
-            return redirect(f"/sections/{section_id}/evaluations")
-
-        result = service.add_evaluation(section_id, type_, weight, optional)
-        if not result["success"]:
-            flash(result.get("message", "Error al crear la evaluación."), "danger")
-        else:
-            flash("Evaluación creada exitosamente.", "success")
-        return redirect(f"/sections/{section_id}/evaluations")
+        
+        result = service.add_evaluation(section_id, evaluation_data['type'], evaluation_data['weight'], evaluation_data['optional'])
+        return handle_service_result(result, section_id, "creada")
     except Exception as e:
         print("Error en create:", e)
         flash("Error interno al crear evaluación.", "danger")
@@ -53,27 +42,51 @@ def delete(section_id, eid):
 @evaluation_bp.route('/sections/<int:section_id>/evaluations/<int:eid>/edit', methods=['POST'])
 def update(section_id, eid):
     try:
-        type_ = request.form.get("type", "").strip()
-        weight = float(request.form.get("weight", 0)) / 100
-        optional = bool(int(request.form.get("optional", 0)))
-
-        if not type_:
-            flash("El tipo de evaluación es obligatorio.", "danger")
+        evaluation_data = extract_evaluation_data()
+        
+        validation_error = validate_evaluation_update(evaluation_data, section_id, eid)
+        if validation_error:
+            flash(validation_error, "danger")
             return redirect(f"/sections/{section_id}/evaluations")
-
-        evaluations = service.get_all_evaluations_by_section(section_id)
-        current = sum(e['weight'] for e in evaluations if e['id'] != eid)
-        if current + weight > 1.01:
-            flash("El peso total excede el 100%.", "danger")
-            return redirect(f"/sections/{section_id}/evaluations")
-
-        result = service.update_evaluation(eid, type_, weight, optional)
-        if not result["success"]:
-            flash(result.get("message", "Error al actualizar la evaluación."), "danger")
-        else:
-            flash("Evaluación actualizada exitosamente.", "success")
-        return redirect(f"/sections/{section_id}/evaluations")
+        
+        result = service.update_evaluation(eid, evaluation_data['type'], evaluation_data['weight'], evaluation_data['optional'])
+        return handle_service_result(result, section_id, "actualizada")
     except Exception as e:
         print("Error en update:", e)
         flash("Error interno al actualizar evaluación.", "danger")
         return redirect(f"/sections/{section_id}/evaluations")
+
+def extract_evaluation_data():
+    return {
+        'type': request.form.get("type", "").strip(),
+        'weight': float(request.form.get("weight", 0)) / 100,
+        'optional': bool(int(request.form.get("optional", 0)))
+    }
+
+def validate_evaluation_data(evaluation_data, section_id):
+    if not evaluation_data['type']:
+        return "El tipo de evaluación es obligatorio."
+    
+    current_weight = service.get_total_weight_by_section(section_id)
+    if current_weight + evaluation_data['weight'] > 1.0:
+        return "El peso total excede el 100%."
+    
+    return None
+
+def validate_evaluation_update(evaluation_data, section_id, eid):
+    if not evaluation_data['type']:
+        return "El tipo de evaluación es obligatorio."
+    
+    evaluations = service.get_all_evaluations_by_section(section_id)
+    current_weight = sum(e['weight'] for e in evaluations if e['id'] != eid)
+    if current_weight + evaluation_data['weight'] > 1.0:
+        return "El peso total excede el 100%."
+    
+    return None
+
+def handle_service_result(result, section_id, action):
+    if not result["success"]:
+        flash(result.get("message", f"Error al {action} la evaluación."), "danger")
+    else:
+        flash(f"Evaluación {action} exitosamente.", "success")
+    return redirect(f"/sections/{section_id}/evaluations")
