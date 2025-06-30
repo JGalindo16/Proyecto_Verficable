@@ -98,4 +98,19 @@ python main.py
 
 ### La base de datos sufrió bastantes cambios, recomendamos botar la base de datos y volverla a crear con los pasos de arriba. 
 ### No esta de más volver a recordar que se tiene que ejecutar en chrome ya que en algunos navegadore no funciona el tour guído de carga de json's
-### En relación con los errores recurrentes señalados por flake8, existen tres casos que tienen una justificación clara: el uso de espacios en blanco se realiza intencionalmente para seccionar el código y mejorar su legibilidad; las líneas largas se mantienen en algunos casos para evitar cortes que dificulten la comprensión del código, priorizando la claridad y la flexibilidad en el formato; y, finalmente, la importación de queries desde archivos externos se debe a que, al ser numerosas, incluirlas todas directamente haría el encabezado del archivo más desordenado y menos legible. Estas prácticas fueron adoptadas deliberadamente para favorecer la organización, limpieza y mantenibilidad del proyecto.
+
+---
+## Justificación errores estaticos (con flake8)
+
+Los errores existentes son los siguientes
+
+- W291 trailing whitespace
+- W292 no newline at end of file
+- W293 blank line contains whitespace
+- E128 continuation line under-indented for visual indent
+- E302 expected 2 blank lines, found 1
+- E305 expected 2 blank lines after class or function definition, found 1
+- E501 line too long (> 79 characters)
+
+En relación con los errores recurrentes señalados por flake8, existen varias advertencias que han sido mantenidas intencionalmente por razones de estilo, claridad y mantenibilidad del proyecto. Por ejemplo, los espacios en blanco innecesarios (W291, W293) y las líneas en blanco al final de archivo (W292) se usan estratégicamente para seccionar el código y mejorar su organización visual. Las líneas largas (E501) se conservan en ciertos casos para evitar cortes que dificulten la comprensión del código, especialmente en sentencias SQL complejas o llamadas con múltiples argumentos, priorizando así la claridad. Los errores relacionados con la cantidad de líneas en blanco (E302, E305) también se ajustaron a un estilo deliberado que favorece la legibilidad local de funciones y clases. Asimismo, la advertencia E128 sobre indentación visual responde a una alineación clara respecto al contexto del bloque.
+
