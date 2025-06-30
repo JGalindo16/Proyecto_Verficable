@@ -1,10 +1,23 @@
 from app.db import DatabaseConnection
-from app.http_errors import HTTP_OK, HTTP_BAD_REQUEST
-from app.sql_queries.section_queries import *
+from app.sql_queries.section_queries import (
+    GET_SECTIONS_BY_INSTANCE,
+    CHECK_DUPLICATE_SECTION_IN_INSTANCE,
+    CHECK_STUDENT_ALREADY_ENROLLED_WITH_NAME,
+    GET_INSTANCE_ID_FROM_SECTION,
+    INSERT_SECTION,
+    INSERT_STUDENTS_TO_SECTION,
+    DELETE_SECTION,
+    GET_SECTION_BY_ID,
+    GET_STUDENTS_IN_SECTION,
+    UPDATE_SECTION,
+    DELETE_STUDENTS_FROM_SECTION,
+    GET_ENROLLED_STUDENT_IDS,
+    GET_ALL_PROFESSORS,
+    GET_ALL_STUDENTS
+)
 
 
 class SectionService:
-    """Service for managing sections and student enrollments."""
     
     def __init__(self):
         self.db = DatabaseConnection()
@@ -91,7 +104,7 @@ class SectionService:
                 "section_id": section_id
             }
 
-        except Exception as e:
+        except Exception:
             self.db.rollback()
             return {
                 "success": False, 
@@ -126,7 +139,7 @@ class SectionService:
                 "message": "Estudiantes agregados correctamente."
             }
             
-        except Exception as e:
+        except Exception:
             self.db.rollback()
             return {
                 "success": False, 
@@ -141,7 +154,7 @@ class SectionService:
                 "success": True, 
                 "message": "Sección eliminada exitosamente."
             }
-        except Exception as e:
+        except Exception:
             self.db.rollback()
             return {
                 "success": False, 

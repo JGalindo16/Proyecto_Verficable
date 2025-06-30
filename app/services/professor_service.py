@@ -1,5 +1,4 @@
 from app.db import DatabaseConnection
-from app.http_errors import HTTP_OK, HTTP_BAD_REQUEST
 import app.sql_queries.professor_queries as q
 
 class ProfessorService:
@@ -12,7 +11,7 @@ class ProfessorService:
             self.cursor.execute(q.INSERT_PROFESSOR, (name, email))
             self.db.commit()
             return {"success": True}
-        except Exception as e:
+        except Exception:
             return {"success": False, "message": "Error al registrar el profesor."}
 
     def get_all_professors(self):
@@ -28,7 +27,7 @@ class ProfessorService:
             self.cursor.execute(q.UPDATE_PROFESSOR, (name, email, id))
             self.db.commit()
             return {"success": True}
-        except Exception as e:
+        except Exception:
             return {"success": False, "message": "Error al actualizar los datos del profesor."}
 
     def delete_professor(self, id: int):
@@ -36,7 +35,7 @@ class ProfessorService:
             self.cursor.execute(q.DELETE_PROFESSOR, (id,))
             self.db.commit()
             return {"success": True}
-        except Exception as e:
+        except Exception:
             return {"success": False, "message": "Error al eliminar el profesor."}
 
     def delete_all_professors(self):
@@ -49,5 +48,5 @@ class ProfessorService:
             self.cursor.execute("ALTER TABLE enrollments AUTO_INCREMENT = 1")
             self.db.commit()
             return {"success": True}
-        except Exception as e:
+        except Exception:
             return {"success": False, "message": "Error al eliminar todos los profesores."}

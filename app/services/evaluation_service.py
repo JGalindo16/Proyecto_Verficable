@@ -1,5 +1,4 @@
 from app.db import DatabaseConnection
-from app.http_errors import HTTP_BAD_REQUEST, HTTP_OK
 from app.sql_queries import evaluation_queries as q
 
 class EvaluationService:
@@ -29,7 +28,7 @@ class EvaluationService:
 
             self.db.commit()
             return {"success": True}
-        except Exception as e:
+        except Exception:
             return {"success": False, "message": "Error interno al crear evaluación."}
 
     def get_all_evaluations_by_section(self, section_id: int):
@@ -49,7 +48,7 @@ class EvaluationService:
             self.cursor.execute(q.UPDATE_EVALUATION, (type_, weight, optional, evaluation_id))
             self.db.commit()
             return {"success": True}
-        except Exception as e:
+        except Exception:
             return {"success": False, "message": "Error interno al actualizar evaluación."}
 
     def delete_evaluation(self, evaluation_id: int):
@@ -57,7 +56,7 @@ class EvaluationService:
             self.cursor.execute(q.DELETE_EVALUATION, (evaluation_id,))
             self.db.commit()
             return {"success": True}
-        except Exception as e:
+        except Exception:
             return {"success": False, "message": "Error interno al eliminar evaluación."}
 
     def get_total_weight_by_section(self, section_id: int):

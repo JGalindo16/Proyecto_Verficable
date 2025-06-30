@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, flash
 from app.services.evaluation_service import EvaluationService
-from app.http_errors import HTTP_BAD_REQUEST
 
 evaluation_bp = Blueprint('evaluation', __name__)
 service = EvaluationService()

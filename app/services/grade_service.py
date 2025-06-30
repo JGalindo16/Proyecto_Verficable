@@ -1,5 +1,4 @@
 from app.db import DatabaseConnection
-from app.http_errors import HTTP_OK, HTTP_BAD_REQUEST
 from app.sql_queries.grade_queries import (
     GET_SECTION_GRADES,
     GET_COURSE_INFO,
@@ -12,36 +11,30 @@ from app.sql_queries.grade_queries import (
 
 
 class GradeService:
-    """Service for managing student grades."""
-    
+
     def __init__(self):
         self.db = DatabaseConnection()
         self.cursor = self.db.connect()
 
     def get_section_grades(self, section_id):
-        """Get all grades for a specific section."""
         self.cursor.execute(GET_SECTION_GRADES, (section_id,))
         return self.cursor.fetchall()
 
     def get_course_info_for_grades(self, course_id, instance_id):
-        """Get course information for grade management."""
         self.cursor.execute(GET_COURSE_INFO, (course_id, instance_id))
         return self.cursor.fetchone()
 
     def _get_enrollment_id(self, section_id: int, student_id: int):
-        """Query: Get enrollment ID for student in section."""
         self.cursor.execute(GET_ENROLLMENT_ID, (section_id, student_id))
         result = self.cursor.fetchone()
         return result["enrollment_id"] if result else None
 
     def _get_existing_grade(self, instance_eval_id: int, enrollment_id: int):
-        """Query: Check if grade already exists."""
         self.cursor.execute(GET_EXISTING_GRADE, (instance_eval_id, enrollment_id))
         return self.cursor.fetchone()
 
     def _save_grade(self, instance_eval_id: int, enrollment_id: int, 
                    score: float, is_update: bool = False):
-        """Command: Save or update grade in database."""
         if is_update:
             self.cursor.execute(
                 UPDATE_GRADE, (score, instance_eval_id, enrollment_id)
@@ -53,7 +46,6 @@ class GradeService:
         self.db.commit()
 
     def _calculate_averages(self, enrollment_id: int):
-        """Query: Calculate type and final averages for enrollment."""
         self.cursor.execute(GET_ALL_GRADES_FOR_ENROLLMENT, (enrollment_id,))
         rows = self.cursor.fetchall()
 
@@ -121,7 +113,7 @@ class GradeService:
                 "final_average": round(final_avg, 1)
             }
 
-        except Exception as e:
+        except Exception:
             return {
                 "success": False,
                 "type_average": None,

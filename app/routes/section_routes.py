@@ -2,7 +2,6 @@ from flask import Blueprint, render_template, request, redirect, flash
 from app.services.section_service import SectionService
 from app.services.course_instance_service import CourseInstanceService
 from app.services.course_service import CourseService
-from app.http_errors import HTTP_BAD_REQUEST
 
 section_bp = Blueprint('section', __name__)
 section_service = SectionService()

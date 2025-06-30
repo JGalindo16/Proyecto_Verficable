@@ -1,8 +1,33 @@
 import json
 import re
-from datetime import date
 from app.db import DatabaseConnection
-from app.sql_queries.json_queries import *
+from app.sql_queries.json_queries import (
+    CHECK_EMAIL_EXISTS,
+    INSERT_STUDENT_WITH_ID,
+    INSERT_STUDENT,
+    CHECK_STUDENT_EXISTS,
+    INSERT_PROFESSOR_WITH_ID,
+    INSERT_PROFESSOR,
+    CHECK_PROFESSOR_EXISTS,
+    INSERT_COURSE_WITH_ID,
+    INSERT_COURSE,
+    SELECT_PREREQUISITE_ID_BY_CODE,
+    INSERT_COURSE_PREREQUISITE,
+    CHECK_COURSE_EXISTS,
+    INSERT_INSTANCE_WITH_ID,
+    INSERT_INSTANCE,
+    CHECK_INSTANCE_EXISTS,
+    INSERT_SECTION,
+    CHECK_SECTION_EXISTS,
+    INSERT_EVALUATION,
+    INSERT_EVALUATION_INSTANCE,
+    SELECT_INSTANCE_EVAL_AND_SECTION,
+    INSERT_ENROLLMENT,
+    SELECT_ENROLLMENT_ID,
+    INSERT_CLASSROOM_WITH_ID,
+    INSERT_CLASSROOM,
+    INSERT_GRADE
+)
 
 class JsonUploadService:
     
@@ -81,16 +106,13 @@ class JsonUploadService:
         self.cursor = self.db.connect()
 
     def is_valid_email(self, email):
-        """Check if email format is valid."""
         return re.match(self._EMAIL_PATTERN, email)
 
     def email_exists(self, email):
-        """Check if email already exists in database."""
         self.cursor.execute(CHECK_EMAIL_EXISTS, (email,))
         return self.cursor.fetchone() is not None
 
     def _validate_course_data(self, curso, i):
-        """Validate individual course data."""
         id_ = curso.get(self._FIELD_ID)
         name = curso.get(self._FIELD_DESCRIPCION)
         codigo = curso.get(self._FIELD_CODIGO)
@@ -115,7 +137,6 @@ class JsonUploadService:
         return id_, name, codigo, creditos, requisitos
 
     def _insert_course(self, id_, codigo, name, creditos):
-        """Insert course into database."""
         if id_:
             self.cursor.execute(
                 INSERT_COURSE_WITH_ID, (id_, codigo, name, creditos)
@@ -126,7 +147,6 @@ class JsonUploadService:
             return self.cursor.lastrowid
 
     def _process_course_prerequisites(self, course_id, requisitos):
-        """Process and insert course prerequisites."""
         for code in requisitos:
             if not isinstance(code, str) or not code.strip():
                 raise ValueError("Código de prerrequisito inválido")
@@ -143,8 +163,38 @@ class JsonUploadService:
                 INSERT_COURSE_PREREQUISITE, (course_id, prereq_id)
             )
     
+    def _validate_and_insert_alumno(self, alumno, index):
+        nombre = alumno.get(self._FIELD_NOMBRE)
+        correo = alumno.get(self._FIELD_CORREO)
+        anio_ingreso = alumno.get(self._FIELD_ANIO_INGRESO)
+        id_ = alumno.get(self._FIELD_ID)
+
+        if not isinstance(nombre, str) or not nombre.strip():
+            raise ValueError(self._MSG_INVALID_NAME)
+
+        if not isinstance(correo, str) or "@" not in correo:
+            raise ValueError(self._MSG_INVALID_EMAIL)
+
+        if not isinstance(anio_ingreso, int):
+            raise ValueError(self._MSG_INVALID_YEAR)
+
+        if id_ is not None and not isinstance(id_, int):
+            raise ValueError(self._MSG_INVALID_ID)
+
+        fecha_ingreso = self._DATE_FORMAT.format(year=anio_ingreso)
+
+        if id_:
+            self.cursor.execute(
+                INSERT_STUDENT_WITH_ID,
+                (id_, nombre, correo, fecha_ingreso)
+            )
+        else:
+            self.cursor.execute(
+                INSERT_STUDENT,
+                (nombre, correo, fecha_ingreso)
+            )
+
     def load_alumnos(self, file_storage):
-        """Load students from JSON file."""
         try:
             raw_data = json.load(file_storage)
 
@@ -155,48 +205,18 @@ class JsonUploadService:
                 )
 
             alumnos = raw_data[self._KEY_ALUMNOS]
-            
+
             if len(alumnos) > self._MAX_ITEMS:
                 return False, (f"El archivo contiene {len(alumnos)} alumnos. "
                               f"Máximo permitido: {self._MAX_ITEMS}.")
-            
+
             errores = []
             insertados = 0
 
             for i, alumno in enumerate(alumnos, start=1):
                 try:
-                    nombre = alumno.get(self._FIELD_NOMBRE)
-                    correo = alumno.get(self._FIELD_CORREO)
-                    anio_ingreso = alumno.get(self._FIELD_ANIO_INGRESO)
-                    id_ = alumno.get(self._FIELD_ID)
-
-                    if not isinstance(nombre, str) or not nombre.strip():
-                        raise ValueError(self._MSG_INVALID_NAME)
-
-                    if not isinstance(correo, str) or "@" not in correo:
-                        raise ValueError(self._MSG_INVALID_EMAIL)
-
-                    if not isinstance(anio_ingreso, int):
-                        raise ValueError(self._MSG_INVALID_YEAR)
-
-                    if id_ is not None and not isinstance(id_, int):
-                        raise ValueError(self._MSG_INVALID_ID)
-
-                    if id_:
-                        self.cursor.execute(
-                            INSERT_STUDENT_WITH_ID, 
-                            (id_, nombre, correo, 
-                             self._DATE_FORMAT.format(year=anio_ingreso))
-                        )
-                    else:
-                        self.cursor.execute(
-                            INSERT_STUDENT, 
-                            (nombre, correo, 
-                             self._DATE_FORMAT.format(year=anio_ingreso))
-                        )
-
+                    self._validate_and_insert_alumno(alumno, i)
                     insertados += 1
-
                 except Exception as e:
                     errores.append(f"Alumno #{i}: {str(e)}")
 
@@ -215,8 +235,26 @@ class JsonUploadService:
             print("Error al cargar alumnos:", e)
             return False, self._MSG_PROCESSING_ERROR
     
+    def _validate_and_insert_profesor(self, prof, i):
+        nombre = prof.get(self._FIELD_NOMBRE)
+        correo = prof.get(self._FIELD_CORREO)
+        id_ = prof.get(self._FIELD_ID)
+
+        if not isinstance(nombre, str) or not nombre.strip():
+            raise ValueError(self._MSG_INVALID_NAME)
+
+        if not isinstance(correo, str) or not self.is_valid_email(correo):
+            raise ValueError(self._MSG_INVALID_EMAIL)
+
+        if id_ is not None and not isinstance(id_, int):
+            raise ValueError(self._MSG_INVALID_ID)
+
+        if id_:
+            self.cursor.execute(INSERT_PROFESSOR_WITH_ID, (id_, nombre, correo))
+        else:
+            self.cursor.execute(INSERT_PROFESSOR, (nombre, correo))
+
     def load_profesores(self, file_storage):
-        """Load professors from JSON file."""
         try:
             raw_data = json.load(file_storage)
 
@@ -238,31 +276,8 @@ class JsonUploadService:
 
             for i, prof in enumerate(profesores, start=1):
                 try:
-                    nombre = prof.get(self._FIELD_NOMBRE)
-                    correo = prof.get(self._FIELD_CORREO)
-                    id_ = prof.get(self._FIELD_ID)
-
-                    if not isinstance(nombre, str) or not nombre.strip():
-                        raise ValueError(self._MSG_INVALID_NAME)
-
-                    if (not isinstance(correo, str) or 
-                        not self.is_valid_email(correo)):
-                        raise ValueError(self._MSG_INVALID_EMAIL)
-
-                    if id_ is not None and not isinstance(id_, int):
-                        raise ValueError(self._MSG_INVALID_ID)
-
-                    if id_:
-                        self.cursor.execute(
-                            INSERT_PROFESSOR_WITH_ID, (id_, nombre, correo)
-                        )
-                    else:
-                        self.cursor.execute(
-                            INSERT_PROFESSOR, (nombre, correo)
-                        )
-
+                    self._validate_and_insert_profesor(prof, i)
                     insertados += 1
-
                 except Exception as e:
                     errores.append(f"Profesor #{i}: {str(e)}")
 
@@ -281,8 +296,12 @@ class JsonUploadService:
             print("Error al cargar profesores:", e)
             return False, self._MSG_PROCESSING_ERROR
 
+    def _validate_and_insert_curso(self, curso, i):
+        id_, name, codigo, creditos, requisitos = self._validate_course_data(curso, i)
+        course_id = self._insert_course(id_, codigo, name, creditos)
+        self._process_course_prerequisites(course_id, requisitos)
+
     def load_cursos(self, file_storage):
-        """Load courses from JSON file."""
         try:
             raw_data = json.load(file_storage)
 
@@ -303,19 +322,8 @@ class JsonUploadService:
 
             for i, curso in enumerate(cursos, start=1):
                 try:
-                    # Validate course data
-                    id_, name, codigo, creditos, requisitos = (
-                        self._validate_course_data(curso, i)
-                    )
-
-                    # Insert course
-                    course_id = self._insert_course(id_, codigo, name, creditos)
-
-                    # Process prerequisites
-                    self._process_course_prerequisites(course_id, requisitos)
-
+                    self._validate_and_insert_curso(curso, i)
                     insertados += 1
-
                 except Exception as e:
                     errores.append(f"Curso #{i}: {str(e)}")
 
@@ -334,8 +342,30 @@ class JsonUploadService:
             print("Error al cargar cursos:", e)
             return False, self._MSG_INTERNAL_ERROR
 
+    def _validate_and_insert_instancia(self, instancia, anio, semestre, i):
+        id_ = instancia.get(self._FIELD_ID)
+        curso_id = instancia.get(self._FIELD_CURSO_ID)
+
+        if not isinstance(curso_id, int):
+            raise ValueError("El campo 'curso_id' debe ser un entero.")
+
+        self.cursor.execute(CHECK_COURSE_EXISTS, (curso_id,))
+        if not self.cursor.fetchone():
+            raise ValueError(self._MSG_COURSE_NOT_EXISTS.format(id=curso_id))
+
+        if id_ is not None and not isinstance(id_, int):
+            raise ValueError("El campo 'id' debe ser entero o no estar presente.")
+
+        if id_:
+            self.cursor.execute(
+                INSERT_INSTANCE_WITH_ID, (id_, curso_id, anio, str(semestre))
+            )
+        else:
+            self.cursor.execute(
+                INSERT_INSTANCE, (curso_id, anio, str(semestre))
+            )
+
     def load_instancias(self, file_storage):
-        """Load course instances from JSON file."""
         try:
             raw_data = json.load(file_storage)
 
@@ -363,35 +393,7 @@ class JsonUploadService:
             insertados = 0
             for i, instancia in enumerate(instancias, start=1):
                 try:
-                    id_ = instancia.get(self._FIELD_ID)
-                    curso_id = instancia.get(self._FIELD_CURSO_ID)
-
-                    if not isinstance(curso_id, int):
-                        raise ValueError(
-                            "El campo 'curso_id' debe ser un entero."
-                        )
-
-                    self.cursor.execute(CHECK_COURSE_EXISTS, (curso_id,))
-                    if not self.cursor.fetchone():
-                        raise ValueError(
-                            self._MSG_COURSE_NOT_EXISTS.format(id=curso_id)
-                        )
-
-                    if id_ is not None and not isinstance(id_, int):
-                        raise ValueError(
-                            "El campo 'id' debe ser entero o no estar presente."
-                        )
-
-                    if id_:
-                        self.cursor.execute(
-                            INSERT_INSTANCE_WITH_ID, 
-                            (id_, curso_id, anio, str(semestre))
-                        )
-                    else:
-                        self.cursor.execute(
-                            INSERT_INSTANCE, (curso_id, anio, str(semestre))
-                        )
-
+                    self._validate_and_insert_instancia(instancia, anio, semestre, i)
                     insertados += 1
                 except Exception as e:
                     errores.append(f"Instancia #{i}: {str(e)}")
@@ -412,7 +414,6 @@ class JsonUploadService:
             return False, self._MSG_INTERNAL_ERROR
 
     def _round_with_correction(self, values):
-        """Helper function to round values with correction."""
         rounded = [round(v, 2) for v in values]
         diff = round(1.0 - sum(rounded), 2)
         if rounded:
@@ -420,7 +421,6 @@ class JsonUploadService:
         return rounded
 
     def _validate_section_basic_data(self, seccion):
-        """Validate basic section data."""
         instance_id = int(seccion.get(self._FIELD_INSTANCIA_CURSO))
         numero = int(seccion.get(self._FIELD_ID))
         profesor_id = int(seccion.get(self._FIELD_PROFESOR_ID))
@@ -436,12 +436,10 @@ class JsonUploadService:
         return instance_id, numero, profesor_id
 
     def _create_section(self, instance_id, numero, profesor_id):
-        """Create section in database."""
         self.cursor.execute(INSERT_SECTION, (instance_id, numero, profesor_id))
         return self.cursor.lastrowid
 
     def _validate_evaluation_data(self, evaluacion):
-        """Validate evaluation structure."""
         tipo_eval = evaluacion.get(self._FIELD_TIPO)
         if tipo_eval not in (self._EVAL_TYPE_PESO, self._EVAL_TYPE_PORCENTAJE):
             raise ValueError(f"Tipo de evaluación inválido: {tipo_eval}")
@@ -452,7 +450,6 @@ class JsonUploadService:
         return tipo_eval, combinacion, topicos
 
     def _calculate_topic_weights(self, combinacion, tipo_eval):
-        """Calculate normalized weights for topics."""
         valores_topico = [float(t[self._FIELD_VALOR]) for t in combinacion]
         
         if tipo_eval == self._EVAL_TYPE_PESO:
@@ -468,7 +465,6 @@ class JsonUploadService:
         return pesos_relativos
 
     def _validate_topic_consistency(self, topico_id, topico):
-        """Validate topic data consistency."""
         cantidad = topico.get(self._FIELD_CANTIDAD)
         valores = topico.get(self._FIELD_VALORES, [])
         obligatorias = topico.get(self._FIELD_OBLIGATORIAS, [])
@@ -481,7 +477,6 @@ class JsonUploadService:
         return cantidad, valores, obligatorias
 
     def _calculate_instance_weights(self, topico, valores):
-        """Calculate normalized weights for evaluation instances."""
         if topico[self._FIELD_TIPO] == self._EVAL_TYPE_PESO:
             total = sum(valores)
             instancias_pesos = self._round_with_correction(
@@ -496,7 +491,6 @@ class JsonUploadService:
 
     def _create_evaluation_instances(self, evaluation_id, nombre, cantidad, 
                                    instancias_pesos, obligatorias):
-        """Create evaluation instances in database."""
         for j in range(cantidad):
             self.cursor.execute(
                 INSERT_EVALUATION_INSTANCE, (
@@ -508,7 +502,6 @@ class JsonUploadService:
             )
 
     def _process_section_evaluation(self, section_id, evaluacion):
-        """Process evaluation structure for a section."""
         tipo_eval, combinacion, topicos = self._validate_evaluation_data(
             evaluacion
         )
@@ -542,7 +535,6 @@ class JsonUploadService:
             )
 
     def _process_section_with_evaluations(self, seccion):
-        """Process a complete section including its evaluations."""
         instance_id, numero, profesor_id = (
             self._validate_section_basic_data(seccion)
         )
@@ -555,8 +547,24 @@ class JsonUploadService:
 
         return section_id
 
+    def _validate_and_insert_enrollment(self, inscripcion, i):
+        seccion_id = inscripcion.get(self._FIELD_SECCION_ID)
+        alumno_id = inscripcion.get(self._FIELD_ALUMNO_ID)
+
+        if not isinstance(seccion_id, int) or not isinstance(alumno_id, int):
+            raise ValueError("IDs inválidos (deben ser enteros)")
+
+        self.cursor.execute(CHECK_SECTION_EXISTS, (seccion_id,))
+        if not self.cursor.fetchone():
+            raise ValueError(self._MSG_SECTION_NOT_EXISTS.format(id=seccion_id))
+
+        self.cursor.execute(CHECK_STUDENT_EXISTS, (alumno_id,))
+        if not self.cursor.fetchone():
+            raise ValueError(self._MSG_STUDENT_NOT_EXISTS.format(id=alumno_id))
+
+        self.cursor.execute(INSERT_ENROLLMENT, (alumno_id, seccion_id))
+
     def load_enrollments(self, file_storage):
-        """Load student enrollments from JSON file."""
         try:
             raw_data = json.load(file_storage)
 
@@ -573,24 +581,8 @@ class JsonUploadService:
 
             for i, inscripcion in enumerate(inscripciones, start=1):
                 try:
-                    seccion_id = inscripcion.get(self._FIELD_SECCION_ID)
-                    alumno_id = inscripcion.get(self._FIELD_ALUMNO_ID)
-
-                    if not isinstance(seccion_id, int) or not isinstance(alumno_id, int):
-                        raise ValueError("IDs inválidos (deben ser enteros)")
-
-                    self.cursor.execute(CHECK_SECTION_EXISTS, (seccion_id,))
-                    if not self.cursor.fetchone():
-                        raise ValueError(self._MSG_SECTION_NOT_EXISTS.format(id=seccion_id))
-
-                    self.cursor.execute(CHECK_STUDENT_EXISTS, (alumno_id,))
-                    if not self.cursor.fetchone():
-                        raise ValueError(self._MSG_STUDENT_NOT_EXISTS.format(id=alumno_id))
-
-                    self.cursor.execute(INSERT_ENROLLMENT, (alumno_id, seccion_id))
-
+                    self._validate_and_insert_enrollment(inscripcion, i)
                     insertados += 1
-
                 except Exception as e:
                     errores.append(f"Ingreso #{i}: {str(e)}")
 
@@ -608,8 +600,26 @@ class JsonUploadService:
             print("Error al cargar inscripciones:", e)
             return False, self._MSG_INTERNAL_ERROR
 
+    def _validate_and_insert_classroom(self, sala, i):
+        id_ = sala.get(self._FIELD_ID)
+        nombre = sala.get(self._FIELD_NOMBRE)
+        capacidad = sala.get(self._FIELD_CAPACIDAD)
+
+        if not isinstance(nombre, str) or not nombre.strip():
+            raise ValueError(self._MSG_INVALID_NAME)
+
+        if not isinstance(capacidad, int) or capacidad <= 0:
+            raise ValueError(self._MSG_INVALID_CAPACITY)
+
+        if id_ is not None and not isinstance(id_, int):
+            raise ValueError("ID inválido (debe ser entero o nulo)")
+
+        if id_:
+            self.cursor.execute(INSERT_CLASSROOM_WITH_ID, (id_, nombre, capacidad))
+        else:
+            self.cursor.execute(INSERT_CLASSROOM, (nombre, capacidad))
+
     def load_classrooms(self, file_storage):
-        """Load classrooms from JSON file."""
         try:
             raw_data = json.load(file_storage)
 
@@ -626,26 +636,8 @@ class JsonUploadService:
 
             for i, sala in enumerate(salas, start=1):
                 try:
-                    id_ = sala.get(self._FIELD_ID)
-                    nombre = sala.get(self._FIELD_NOMBRE)
-                    capacidad = sala.get(self._FIELD_CAPACIDAD)
-
-                    if not isinstance(nombre, str) or not nombre.strip():
-                        raise ValueError(self._MSG_INVALID_NAME)
-
-                    if not isinstance(capacidad, int) or capacidad <= 0:
-                        raise ValueError(self._MSG_INVALID_CAPACITY)
-
-                    if id_ is not None and not isinstance(id_, int):
-                        raise ValueError("ID inválido (debe ser entero o nulo)")
-
-                    if id_:
-                        self.cursor.execute(INSERT_CLASSROOM_WITH_ID, (id_, nombre, capacidad))
-                    else:
-                        self.cursor.execute(INSERT_CLASSROOM, (nombre, capacidad))
-
+                    self._validate_and_insert_classroom(sala, i)
                     insertados += 1
-
                 except Exception as e:
                     errores.append(f"Sala #{i}: {str(e)}")
 
@@ -663,8 +655,14 @@ class JsonUploadService:
             print("Error al cargar salas:", e)
             return False, self._MSG_INTERNAL_ERROR
 
+    def _insertar_una_seccion_con_evaluacion(self, seccion, index):
+        try:
+            self._process_section_with_evaluations(seccion)
+            return True, None
+        except Exception as e:
+            return False, f"Sección #{index}: {str(e)}"
+
     def load_instancias_con_secciones(self, file_storage):
-        """Load instances with sections from JSON file."""
         try:
             data = json.load(file_storage)
 
@@ -677,19 +675,17 @@ class JsonUploadService:
             errores = []
 
             for i, seccion in enumerate(secciones, start=1):
-                try:
-                    self._process_section_with_evaluations(seccion)
+                success, error_msg = self._insertar_una_seccion_con_evaluacion(seccion, i)
+                if success:
                     insertadas += 1
-
-                except Exception as e:
-                    errores.append(f"Sección #{i}: {str(e)}")
+                else:
+                    errores.append(error_msg)
 
             self.db.commit()
 
             if errores:
                 return False, (f"{insertadas} secciones cargadas con éxito. "
-                              f"{len(errores)} errores.\n" + 
-                              "\n".join(errores))
+                            f"{len(errores)} errores.\n" + "\n".join(errores))
             return True, f"{insertadas} secciones cargadas exitosamente."
 
         except json.JSONDecodeError:
@@ -698,8 +694,49 @@ class JsonUploadService:
             print("Error en carga de secciones:", e)
             return False, self._MSG_INTERNAL_ERROR
 
+    def _validar_nota_fields(self, nota_data, index):
+        required_fields = [
+            self._FIELD_ALUMNO_ID, self._FIELD_TOPICO_ID,
+            self._FIELD_INSTANCIA, self._FIELD_NOTA
+        ]
+        for field in required_fields:
+            if nota_data.get(field) is None:
+                raise ValueError(f"Nota #{index}: Campo '{field}' faltante o nulo")
+
+    def _obtener_info_evaluacion(self, alumno_id, topico_id, instancia, index):
+        self.cursor.execute(
+            "SELECT 1 FROM students WHERE student_id = %s", (alumno_id,)
+        )
+        if not self.cursor.fetchone():
+            raise ValueError(f"Nota #{index}: Alumno con ID {alumno_id} no existe")
+
+        self.cursor.execute(
+            SELECT_INSTANCE_EVAL_AND_SECTION,
+            (topico_id, f"%Instancia {instancia}")
+        )
+        result = self.cursor.fetchone()
+        if not result:
+            raise ValueError(
+                f"Nota #{index}: No existe la instancia {instancia} "
+                f"para el tópico {topico_id}"
+            )
+
+        instance_eval_id = result["instance_eval_id"]
+        section_id = result["section_id"]
+
+        self.cursor.execute(
+            SELECT_ENROLLMENT_ID, (alumno_id, section_id)
+        )
+        result = self.cursor.fetchone()
+        if not result:
+            raise ValueError(
+                f"Nota #{index}: El alumno {alumno_id} no está inscrito en la "
+                f"sección {section_id}"
+            )
+
+        return instance_eval_id, result["enrollment_id"]
+
     def load_notas(self, file_storage):
-        """Load grades from JSON file."""
         try:
             data = json.load(file_storage)
 
@@ -710,25 +747,18 @@ class JsonUploadService:
                 )
 
             notas = data[self._KEY_NOTAS]
-            
             if len(notas) > self._MAX_ITEMS:
-                return False, (f"El archivo contiene {len(notas)} notas. "
-                              f"Máximo permitido: {self._MAX_ITEMS}.")
-            
+                return False, (
+                    f"El archivo contiene {len(notas)} notas. "
+                    f"Máximo permitido: {self._MAX_ITEMS}."
+                )
+
             insertadas = 0
             errores = []
 
             for i, nota_data in enumerate(notas, start=1):
                 try:
-                    required_fields = [
-                        self._FIELD_ALUMNO_ID, self._FIELD_TOPICO_ID, 
-                        self._FIELD_INSTANCIA, self._FIELD_NOTA
-                    ]
-                    for field in required_fields:
-                        if nota_data.get(field) is None:
-                            raise ValueError(
-                                f"Campo '{field}' faltante o nulo"
-                            )
+                    self._validar_nota_fields(nota_data, i)
 
                     alumno_id = int(nota_data[self._FIELD_ALUMNO_ID])
                     topico_id = int(nota_data[self._FIELD_TOPICO_ID])
@@ -736,68 +766,35 @@ class JsonUploadService:
                     nota = float(nota_data[self._FIELD_NOTA])
 
                     if not (self._MIN_GRADE <= nota <= self._MAX_GRADE):
-                        raise ValueError(self._MSG_GRADE_RANGE)
+                        raise ValueError(f"Nota #{i}: {self._MSG_GRADE_RANGE}")
 
-                    self.cursor.execute(
-                        "SELECT 1 FROM students WHERE student_id = %s", 
-                        (alumno_id,)
+                    instance_eval_id, enrollment_id = self._obtener_info_evaluacion(
+                        alumno_id, topico_id, instancia, i
                     )
-                    if not self.cursor.fetchone():
-                        raise ValueError(
-                            f"Alumno con ID {alumno_id} no existe"
-                        )
-
-                    self.cursor.execute(
-                        SELECT_INSTANCE_EVAL_AND_SECTION, 
-                        (topico_id, f"%Instancia {instancia}")
-                    )
-                    result = self.cursor.fetchone()
-                    if not result:
-                        raise ValueError(
-                            f"No existe la instancia {instancia} para el "
-                            f"tópico {topico_id}"
-                        )
-
-                    instance_eval_id = result["instance_eval_id"]
-                    section_id = result["section_id"]
-
-                    self.cursor.execute(
-                        SELECT_ENROLLMENT_ID, (alumno_id, section_id)
-                    )
-                    result = self.cursor.fetchone()
-                    if not result:
-                        raise ValueError(
-                            f"El alumno {alumno_id} no está inscrito en la "
-                            f"sección {section_id}"
-                        )
-                    
-                    enrollment_id = result["enrollment_id"]
 
                     self.cursor.execute(
                         INSERT_GRADE, (enrollment_id, instance_eval_id, nota)
                     )
-
                     insertadas += 1
 
                 except Exception as e:
-                    errores.append(f"Nota #{i}: {str(e)}")
+                    errores.append(str(e))
 
             self.db.commit()
 
             if errores:
                 mensaje = (f"{insertadas} notas cargadas con éxito. "
-                          f"{len(errores)} errores.\n" + "\n".join(errores))
+                        f"{len(errores)} errores.\n" + "\n".join(errores))
                 return False, mensaje
 
             return True, f"{insertadas} notas cargadas exitosamente."
 
         except json.JSONDecodeError:
             return False, self._MSG_INVALID_JSON
-        except Exception as e:
+        except Exception:
             return False, self._MSG_INTERNAL_ERROR
 
     def _validate_json_structure_for_sections(self, data):
-        """Validate JSON structure for sections loading."""
         if (self._KEY_SECCIONES not in data or 
             not isinstance(data[self._KEY_SECCIONES], list)):
             return False, self._MSG_NO_JSON_KEY.format(

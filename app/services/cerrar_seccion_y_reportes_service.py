@@ -73,7 +73,7 @@ class CerrarSeccionYReportesService:
                 f"Sección {section_id} cerrada exitosamente con "
                 f"{len(notas_procesadas)} notas calculadas."
             )
-        except Exception as e:
+        except Exception:
             return False, "Error inesperado al cerrar la sección."
 
     def generar_reporte_notas_seccion(self, section_id: int):
@@ -84,7 +84,7 @@ class CerrarSeccionYReportesService:
 
             data_procesada = self._procesar_datos_reporte_seccion(rows)
             return self._generar_pdf_reporte_seccion(data_procesada, section_id)
-        except Exception as e:
+        except Exception:
             return None
 
     def _obtener_datos_reporte_seccion(self, section_id: int):
@@ -142,7 +142,7 @@ class CerrarSeccionYReportesService:
 
             data_procesada = self._procesar_datos_notas_finales(rows)
             return self._generar_pdf_notas_finales(data_procesada, section_id)
-        except Exception as e:
+        except Exception:
             return None
 
     def _obtener_datos_notas_finales(self, section_id: int):
@@ -193,7 +193,7 @@ class CerrarSeccionYReportesService:
 
             datos_estudiante, evaluaciones, nota_final, promedios = self._procesar_datos_certificado(rows)
             return self._generar_pdf_certificado(datos_estudiante, evaluaciones, nota_final, promedios, section_id, student_id)
-        except Exception as e:
+        except Exception:
             return None
 
     def _obtener_datos_certificado(self, section_id: int, student_id: int):
@@ -278,7 +278,7 @@ class CerrarSeccionYReportesService:
 
             student_name, cursos_procesados = self._procesar_datos_resumen_estudiante(rows)
             return self._generar_pdf_resumen_estudiante(student_name, cursos_procesados, student_id)
-        except Exception as e:
+        except Exception:
             return None
 
     def _obtener_datos_resumen_estudiante(self, student_id: int):

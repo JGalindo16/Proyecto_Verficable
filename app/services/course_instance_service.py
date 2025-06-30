@@ -32,7 +32,7 @@ class CourseInstanceService:
             self.cursor.execute(q.DELETE_INSTANCE, (instance_id,))
             self.db.commit()
             return HTTP_OK
-        except Exception as e:
+        except Exception:
             return HTTP_BAD_REQUEST
 
     def update_instance(self, instance_id: int, year: int, semester: str):
@@ -92,7 +92,6 @@ class CourseInstanceService:
                 return {"success": False, "message": "Instancia de evaluación no encontrada."}
 
             evaluation_id = current['evaluation_id']
-            old_weight = current['specific_weight']
 
             self.cursor.execute(q.GET_OTHER_TOTAL_WEIGHT, (evaluation_id, instance_eval_id))
             result = self.cursor.fetchone()

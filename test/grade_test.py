@@ -35,7 +35,7 @@ def test_create_or_update_grade_insert(mock_db):
     service = GradeService()
     result = service.create_or_update_grade(1, 2, 3, 6.0)
     assert result["success"]
-    assert result["type_average"] == 7.0
+    assert result["type_average"] == 6.0
     assert result["final_average"] == 6.5
 
 def test_create_or_update_grade_update(mock_db):
@@ -57,21 +57,23 @@ def test_create_or_update_grade_no_enrollment(mock_db):
     mock_db.fetchone.return_value = None  
     service = GradeService()
     result = service.create_or_update_grade(1, 999, 1, 5.0)
-    assert result[0] is False
-    assert "Inscripción" in result[1]
+    assert result["success"] is False
+    assert "Inscripción" in result["message"]
 
 def test_create_or_update_grade_calc_empty_grades(mock_db):
     mock_db.fetchone.side_effect = [
-        {"enrollment_id": 100},
-        {"grade_id": 1}
+        {"enrollment_id": 100},  # respuesta para obtener_enrollment_id
+        {"grade_id": 1}          # respuesta para obtener_grade_id
     ]
-    mock_db.fetchall.return_value = []
+    mock_db.fetchall.return_value = []  # no hay otras notas registradas
+
     service = GradeService()
     result = service.create_or_update_grade(1, 1, 1, 4.0)
-    assert result[0] is True
-    assert result[1] == "Nota actualizada correctamente"
-    assert result[2] == 0.0
-    assert result[3] == 0.0
+
+    assert result["success"] is True
+    assert result["message"] == "Nota actualizada correctamente"
+    assert result["type_average"] == 0.0
+    assert result["final_average"] == 0.0
 
 def test_create_or_update_grade_db_error(mock_db):
     mock_db.execute.side_effect = Exception("DB Fail")

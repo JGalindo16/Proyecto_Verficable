@@ -44,7 +44,7 @@ class EvaluationInstanceService:
 
             self.db.commit()
             return {"success": True}
-        except Exception as e:
+        except Exception:
             return {"success": False, "message": "Error inesperado al agregar la instancia"}
 
     def update_instance(self, evaluation_id: int, instance_eval_id: int, name: str, specific_weight: float, mandatory: bool):
@@ -56,7 +56,7 @@ class EvaluationInstanceService:
             self.cursor.execute(q.UPDATE_INSTANCE, (name, specific_weight, mandatory, instance_eval_id))
             self.db.commit()
             return {"success": True}
-        except Exception as e:
+        except Exception:
             return {"success": False, "message": "Error al actualizar la instancia"}
 
     def delete_instance(self, instance_eval_id: int):
@@ -64,5 +64,5 @@ class EvaluationInstanceService:
             self.cursor.execute(q.DELETE_INSTANCE, (instance_eval_id,))
             self.db.commit()
             return HTTP_OK
-        except Exception as e:
+        except Exception:
             return HTTP_BAD_REQUEST

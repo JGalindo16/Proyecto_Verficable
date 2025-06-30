@@ -1,5 +1,4 @@
 from app.db import DatabaseConnection
-from app.http_errors import HTTP_BAD_REQUEST, HTTP_OK
 from app.sql_queries import course_queries as q
 import json
 
@@ -23,7 +22,7 @@ class CourseService:
             self.cursor.execute(q.INSERT_COURSE, (name, code))
             self.db.commit()
             return {"success": True}
-        except Exception as e:
+        except Exception:
             return {"success": False, "message": "Error al insertar en la base de datos"}
 
     def get_all_courses(self):
@@ -56,7 +55,7 @@ class CourseService:
             self.cursor.execute(q.UPDATE_COURSE, (name, code, id))
             self.db.commit()
             return {"success": True}
-        except Exception as e:
+        except Exception:
             return {"success": False, "message": "Error al actualizar el curso"}
 
     def delete_course(self, id):
@@ -80,7 +79,7 @@ class CourseService:
             self.cursor.execute("ALTER TABLE grades AUTO_INCREMENT = 1")
             self.db.commit()
             return {"success": True}
-        except Exception as e:
+        except Exception:
             return {"success": False, "message": "Error al eliminar todos los cursos."}
 
     def process_json(self, file_obj):
@@ -90,5 +89,5 @@ class CourseService:
             self.cursor.executemany(q.INSERT_COURSE, values)
             self.db.commit()
             return {"success": True}
-        except Exception as e:
+        except Exception:
             return {"success": False, "message": "Error al procesar el archivo JSON"}
