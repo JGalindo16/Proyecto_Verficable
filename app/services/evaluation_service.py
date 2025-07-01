@@ -41,7 +41,7 @@ class EvaluationService:
 
     def update_evaluation(self, evaluation_id: int, type_: str, weight: float, optional: bool):
         try:
-            self.cursor.execute(q.CHECK_DUPLICATE_TYPE_ON_UPDATE, (type_, evaluation_id))
+            self.cursor.execute(q.CHECK_DUPLICATE_TYPE_ON_UPDATE, (type_, evaluation_id, evaluation_id))
             if self.cursor.fetchone()["already_exists"]:
                 return {"success": False, "message": "Ya existe otra evaluación con ese nombre."}
 

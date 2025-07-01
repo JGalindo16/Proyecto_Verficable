@@ -57,5 +57,7 @@ CHECK_DUPLICATE_TYPE_ON_CREATE = """
 CHECK_DUPLICATE_TYPE_ON_UPDATE = """
     SELECT COUNT(*) > 0 AS already_exists
     FROM evaluations
-    WHERE type = %s AND evaluation_id != %s
+    WHERE type = %s AND evaluation_id != %s AND section_id = (
+        SELECT section_id FROM evaluations WHERE evaluation_id = %s
+    )
 """
