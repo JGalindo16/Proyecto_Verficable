@@ -232,20 +232,28 @@ class SectionService:
                 return {
                     "success": False,
                     "message": f"El estudiante \"{conflict['name']}\" ya está "
-                              f"inscrito en otra sección de esta instancia."
+                            f"inscrito en otra sección de esta instancia."
                 }
 
-            self.cursor.execute(DELETE_STUDENTS_FROM_SECTION, (section_id,))
-            
-            self._enroll_students_in_section(section_id, student_ids)
-            
+            current_students = set(self.get_enrolled_student_ids(section_id))
+            new_students = set(map(int, student_ids))
+
+            to_add = list(new_students - current_students)
+            to_remove = list(current_students - new_students)
+            self._enroll_students_in_section(section_id, to_add)
+
+            for sid in to_remove:
+                self.cursor.execute(
+                    DELETE_STUDENTS_FROM_SECTION,
+                    (section_id, sid)
+                )
+
             self.db.commit()
-            
             return {
                 "success": True, 
                 "message": "Estudiantes actualizados correctamente."
             }
-            
+
         except Exception as e:
             self.db.rollback()
             return {

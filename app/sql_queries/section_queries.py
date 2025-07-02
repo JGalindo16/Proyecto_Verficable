@@ -65,8 +65,8 @@ UPDATE_SECTION = """
 """
 
 DELETE_STUDENTS_FROM_SECTION = """
-    DELETE FROM enrollments
-    WHERE section_id = %s
+    DELETE FROM enrollments 
+    WHERE section_id = %s AND student_id = %s
 """
 
 GET_ENROLLED_STUDENT_IDS = """
