@@ -1,3 +1,4 @@
 [flake8]
 exclude = .venv,venv,_pycache_,build,dist
-max-cognitive-complexity = 10
+max-cognitive-complexity = 12
+ignore = W291, W292, W293, E128, E302, E305, E501, E126, E129, E131, W504

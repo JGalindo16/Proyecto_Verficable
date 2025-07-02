@@ -93,6 +93,15 @@ python main.py
 
 <img width="1240" alt="Captura de pantalla 2025-06-18 a la(s) 5 28 47 p m" src="https://github.com/user-attachments/assets/9c224c2c-73f6-4b93-95ae-28596b2bdba0" />
 
+## Para Hacer el Analisis estático
+
+Se debe oocupar el siguiente comando:
+
+```bash
+flake8
+```
+
+> Este tiene la configuración prehecha para ver las complejidades que no sean mayores a 12 además de saltarse las advertencias que especificamos más abajo.
 
 ## COSAS A TENER EN CUENTA.
 
@@ -111,6 +120,14 @@ Los errores existentes son los siguientes
 - E302 expected 2 blank lines, found 1
 - E305 expected 2 blank lines after class or function definition, found 1
 - E501 line too long (> 79 characters)
+- E126 Over-indented for hanging indent
+- E129 visually indented line with same indent as next logical line
+- E131 continuation line unaligned for hanging indent
+- W504 line break after binary operator
+
 
 En relación con los errores recurrentes señalados por flake8, existen varias advertencias que han sido mantenidas intencionalmente por razones de estilo, claridad y mantenibilidad del proyecto. Por ejemplo, los espacios en blanco innecesarios (W291, W293) y las líneas en blanco al final de archivo (W292) se usan estratégicamente para seccionar el código y mejorar su organización visual. Las líneas largas (E501) se conservan en ciertos casos para evitar cortes que dificulten la comprensión del código, especialmente en sentencias SQL complejas o llamadas con múltiples argumentos, priorizando así la claridad. Los errores relacionados con la cantidad de líneas en blanco (E302, E305) también se ajustaron a un estilo deliberado que favorece la legibilidad local de funciones y clases. Asimismo, la advertencia E128 sobre indentación visual responde a una alineación clara respecto al contexto del bloque.
+
+A modo de resumen, estas se omitieron al ser cosas visuales que no producen una molestia clara al código y es más creemos que son cosas que ayudan a la legibilidad
+y entendimiento claro del código.
 
