@@ -91,7 +91,7 @@ python main.py
 ---
 ## Coverage del proyecto
 
-<img width="1240" alt="Captura de pantalla 2025-06-18 a la(s) 5 28 47 p m" src="https://github.com/user-attachments/assets/9c224c2c-73f6-4b93-95ae-28596b2bdba0" />
+<img width="1234" alt="Captura de pantalla 2025-07-01 a la(s) 11 26 45 p m" src="https://github.com/user-attachments/assets/a98f5c15-cfec-421b-a16d-0c869796869a" />
 
 ## Para Hacer el Analisis estático
 
