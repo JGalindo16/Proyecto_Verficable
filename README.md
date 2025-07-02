@@ -89,20 +89,37 @@ python main.py
 ```
 
 ---
-## Coverage del proyecto
+## COVERAGE DEL PROYECTO
 
 <img width="1234" alt="Captura de pantalla 2025-07-01 a la(s) 11 26 45 p m" src="https://github.com/user-attachments/assets/a98f5c15-cfec-421b-a16d-0c869796869a" />
 
-## Para Hacer el Analisis estático
+---
+## PARA HACER EL ANÁLISIS ESTÁSTICO
 
 Se debe oocupar el siguiente comando:
 
 ```bash
 flake8
 ```
-
 > Este tiene la configuración prehecha para ver las complejidades que no sean mayores a 12 además de saltarse las advertencias que especificamos más abajo.
 
+---
+## PARA CORRER LOS TEST
+
+Si solo quieres correr los test de manera normal
+
+```bash
+pytest
+```
+Si los quieres correr para ver el coverage del proyecto
+
+```bash
+pytest --cov=. --cov-report=html
+```
+
+Se formará la carpeta htmlcov y se debe abrir en con un navegador el archivo class_index.hml en el aparecen el coverage del proyecto completo.
+
+---
 ## COSAS A TENER EN CUENTA.
 
 ### La base de datos sufrió bastantes cambios, recomendamos botar la base de datos y volverla a crear con los pasos de arriba. 
